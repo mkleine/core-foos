@@ -1,0 +1,16 @@
+NodeJs:
+http://nodejs.org/#download
+sudo apt-get install libssl-dev
+node example.js
+
+Install native MongoDB driver:
+npm config set loglevel info
+npm install mongodb --mongodb:native
+https://github.com/christkv/node-mongodb-native/blob/master/Readme.md
+
+Install socket.io:
+npm install socket.io
+
+Websockets:
+http://elegantcode.com/2011/05/04/taking-baby-steps-with-node-js-websockets/
+
