@@ -6,6 +6,7 @@ node example.js
 Install native MongoDB driver:
 npm config set loglevel info
 npm install mongodb --mongodb:native
+http://mongodb.github.com/node-mongodb-native/
 https://github.com/christkv/node-mongodb-native/blob/master/Readme.md
 
 Install socket.io:
