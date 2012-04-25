@@ -72,10 +72,12 @@
             </goals>
             <configuration>
               <resourceDirectory>src/main/joo</resourceDirectory>
-              <maven.tests.skip>true</maven.tests.skip>
             </configuration>
           </execution>
         </executions>
+        <configuration>
+          <skipTests>true</skipTests>
+        </configuration>
       </plugin>
     </plugins>
     <sourceDirectory>src/main/joo</sourceDirectory>
