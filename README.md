@@ -7,7 +7,7 @@ table is available and there are enough players available.
 
 # Use cases
 
-In the following we provide the basic use-cases represented in table-form. The notation is inspired by the Book "Lean Architecture for Agile Software Development" by James Coplien.
+In the following we provide the basic use-cases represented in table-form. The notation is inspired by the Book "Lean Architecture for Agile Software Development" by James Coplien (p. 187 ff).
 
 Some notes:
 
@@ -135,10 +135,31 @@ Some notes:
 
 # Additional Features
 
-* Web UI fits device's viewport resolution (CCSS Media Queries)
+* Web UI fits device's viewport resolution (CSS Media Queries)
 * **(Optional)** Addtional Notification via
 ** E-Mail
 ** Instant messaging
 * **(Optional)** Authentication via QR-Code
 ** A spcific QR-Code is generated and attached to the kicker
 ** Scanning the QR-Code will trigger a URL that automatically removes the active match from the *match queue*
+
+# Weblinks
+
+* WebSockets
+     * [Api @ W3C](http://en.wikipedia.org/wiki/WebSocket)
+          * [Api @ W3C](http://en.wikipedia.org/wiki/WebSocket)
+          * [Demo Apps](http://www.websocket.org/demos.html)
+* Web Worker - "JavaScript threads"; compute sth. in the background whilst continuing doing some other stuff in the UI
+     * [Wikipedia](http://en.wikipedia.org/wiki/Web_worker)
+* Canvas - HTML element to render arbitrary complex things to; one did even implement a [famous retro game](http://www.adityaravishankar.com/projects/games/command-and-conquer/)
+     * [Wikipedia](http://en.wikipedia.org/wiki/Canvas_element)
+* IndexedDB - a local storage better that LocalStorage (accorging to [some Google folks](http://www.golem.de/news/paul-kinlan-google-mitarbeiter-sagt-localstorage-api-den-kampf-an-1202-90093.html))
+     * [Wikipedia](http://en.wikipedia.org/wiki/Indexed_Database_API)
+* CSS Media Queries
+     * [API @ W3C](http://www.w3.org/TR/css3-mediaqueries/)
+     * ["Detection Website"](http://cssmediaqueries.com/)
+
+
+
+
+
