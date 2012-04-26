@@ -143,9 +143,10 @@ var startMatch = function (callback) {
         getListOfMatches(function (docs) {
           if (docs && docs.length > 0) {
             var match = docs[0];
-            mongo.upsert(matches, {_id:match._id}, {state:MATCH_STATE_ACTIVE}, function () {
+            var date = new Date();
+            mongo.upsert(matches, {_id:match._id}, {state:MATCH_STATE_ACTIVE, date: date}, function () {
               console.log("Really start match");
-              callback(match);
+              callback({match: match, date: date});
             });
           } else {
             callback();
@@ -156,9 +157,9 @@ var startMatch = function (callback) {
 };
 
 var endMatch = function (id, callback) { //by id??
-  mongo.find(matches, {_id:id}).toArray(function (err, matchesArray) {
+  mongo.find(matches, {_id:mongodb.ObjectID.createFromHexString(id)}, {}).toArray(function (err, matchesArray) {
     if (matchesArray && matchesArray.length > 0) {
-      var match = matchesArray.get(0);
+      var match = matchesArray[0];
       mongo.update(users, {name:match.userName1}, {state:USER_STATE_FINISHED}, function () {
       });
       mongo.update(users, {name:match.userName2}, {state:USER_STATE_FINISHED}, function () {

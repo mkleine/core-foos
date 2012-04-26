@@ -33,8 +33,6 @@ webSocket.on('connection', function (client) {
   client.emit("message", 'Welcome to Core Foo Kicker App');
   client.on('register', function(data) {
 
-  // [{name:"player1"}, {name:"player2"}]
-
   repository.requestPlay(data, function(match) {
     console.log("maybe start a match with " + JSON.stringify(match));
     if (match) {
@@ -43,11 +41,6 @@ webSocket.on('connection', function (client) {
       client.emit("start_match", match);
     }
   });
-
-    // client.emit("message", users + ' has entered the play zone.');
-    // client.broadcast.emit("enter", user);
-    // client.emit("enter", user);
-    // updateMatchPlan(client);
     return;
   });
 
@@ -68,6 +61,7 @@ webSocket.on('connection', function (client) {
     repository.endMatch(data.matchId, function(match) {
       if (match) {
         client.broadcast.emit("start_match", match);
+        client.emit("start_match", match);
       }
     });
     return;
