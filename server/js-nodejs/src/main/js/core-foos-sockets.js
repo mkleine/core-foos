@@ -3,7 +3,19 @@ var socketIO = require('socket.io');
 var static = require('node-static');
 var repository = require('./core-foos-server');
 
-var clientFiles = new static.Server('./client');
+var config = {};
+try{
+  eval(process.argv[2]);
+} catch(e){
+  //ignore
+}
+console.log("config:");
+console.dir(config);
+var dir = config['dir'];
+if(!dir){
+  dir = './client';
+}
+var clientFiles = new static.Server(dir);
 repository.initialize();
 
 console.log("Ready to listen");
