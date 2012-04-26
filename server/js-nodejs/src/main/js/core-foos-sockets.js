@@ -52,7 +52,7 @@ webSocket.on('connection', function (client) {
   });
 
   client.on('check_table_state', function() {
-    client.emit("table_state", {occupied: true});
+    getTableState(client);
     return;
   });
 });
@@ -69,11 +69,11 @@ function updateUserList(client) {
 function getTableState(client) {
   repository.getNumberOfMatches(function (count) {
             if (count == 0) {
-              client.broadcast.emit("tableState", true);
-              client.emit("tableState", true);
+              client.broadcast.emit("table_state", true);
+              client.emit("table_state", true);
             } else {
-              client.broadcast.emit("tableState", false);
-              client.emit("tableState", false);
+              client.broadcast.emit("table_state", false);
+              client.emit("table_state", false);
             }
           }
   );

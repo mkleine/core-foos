@@ -57,9 +57,14 @@ var getListOfUsers = function (callback) {
   return result;
 };
 
-var requestPlay = function (userName) {
-  console.log("Got users: " + users + ", add " + userName);
-  mongo.insert(users, {name:userName});
+var requestPlay = function (newUsers) {
+  console.log("Got users: " + newUsers + ", add " +newUsers.length + " users");
+  for (i=0;i<newUsers.length;i++) {
+    console.log("Add user: " + newUsers[i].name);
+    if (newUsers[i].name) {
+      mongo.insert(users, {name:newUsers[i].name});
+    }
+  }
 };
 
 var cancelPlay = function (userName) {
