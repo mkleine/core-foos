@@ -128,7 +128,7 @@ Some notes:
   </tr>
   <tr>
     <td><code>end_match</code></td>
-    <td><code>matchId</code></td>
+    <td><code>matchId: ...</code></td>
   </tr>
 </table>
 
@@ -152,11 +152,16 @@ Some notes:
         <dt><code>occupied</code></dt>
         <dd><code>true|false</code></dd>
       </dl>
+      <dl>
+        <dt><code>count</code></dt>
+        <dd><code>int</code></dd>
+      </dl>
     </td>
   </tr>
   <tr>
     <td><code>start_match</code></td>
-    <td><code>match</code></td>
+    <td><code>match: {matchId: ...}</code></td>
+    <td><code>match: {date: startDate}</code></td>
   </tr>
 </table>
 

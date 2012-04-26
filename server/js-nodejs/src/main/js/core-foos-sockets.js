@@ -70,13 +70,13 @@ webSocket.on('connection', function (client) {
 
 function getTableState(client) {
   repository.getNumberOfMatches(function (count) {
-            if (count == 0) {
-              client.broadcast.emit("table_state", {occupied: false});
-              client.emit("table_state", {occupied: false});
-            } else {
-              client.broadcast.emit("table_state", {occupied: true});
-              client.emit("table_state", {occupied: true});
-            }
-          }
-  );
+    if (count == 0) {
+      client.broadcast.emit("table_state", {occupied: false, count: 0});
+      client.emit("table_state", {occupied: false, count: 0});
+    } else {
+      client.broadcast.emit("table_state", {occupied: true, count: count});
+      client.emit("table_state", {occupied: true, count: count});
+    }
+  }
+ );
 }
