@@ -2,8 +2,10 @@ var remove = function (collection, expr) {
   collection.remove(expr);
 };
 
-var update = function (collection, selector, newValue) {
-  collection.update(selector, {$set:newValue}, {safe:true});
+var update = function (collection, selector, newValue, callback) {
+  collection.update(selector, {$set:newValue}, {safe:true}, function(err, result) {
+    callback();
+  });
 };
 
 var upsert = function (collection, selector, newValue, callback) {

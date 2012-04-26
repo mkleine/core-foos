@@ -15,6 +15,7 @@ var USER_STATE_CANCELLED = "CANCELLED";
 
 var MATCH_STATE_FINISHED = "FINISHED";
 var MATCH_STATE_WAITING = "WAITING";
+var MATCH_STATE_ACTIVE = "ACTIVE";
 
 var initialize = function (config) {
   const mongoHost = config.mongoHost ? config.mongoHost : 'localhost';
@@ -74,6 +75,13 @@ var getListOfUsers = function (callback) {
   });
 };
 
+var getListOfMatches = function (callback) {
+  console.log("Get list of matches");
+  return mongo.find(matches, {state:MATCH_STATE_WAITING}, {}).sort('date', 1).limit(50).toArray(function (err, docs) {
+    callback(docs);
+  });
+};
+
 var getNumberOfMatches = function (callback) {
   mongo.count(matches, {state:MATCH_STATE_WAITING}, callback);
 };
@@ -92,6 +100,7 @@ var requestPlay = function (newUsers, callback) {
       }
     }
   }
+  startMatch(callback);
 };
 
 var requestPlayForGroup = function (userName1, userName2, userName3, userName4) {
@@ -130,18 +139,39 @@ var matchPlayers = function () {
 };
 
 var cancelPlay = function (userName) {
-  mongo.update(users, {name:userName}, {name:userName, state:USER_STATE_CANCELLED});
+  mongo.update(users, {name:userName}, {name:userName, state:USER_STATE_CANCELLED}, function() {});
 };
 
-var endMatch = function (id) { //by id??
+var startMatch = function(callback) {
+  mongo.find(matches, {state: MATCH_STATE_ACTIVE}).toArray(function(err, result){
+      if(result && result.length > 0) {
+        callback({});
+      } else {
+        getListOfMatches(function(docs) {
+          if (docs && docs.length > 0) {
+            var match = docs[0];
+            mongo.upsert(matches, {_id: match._id}, {state: MATCH_STATE_ACTIVE}, function() {
+              callback(match);
+            });
+          } else {
+            callback({});
+          }
+        });
+      }
+  });
+};
+
+var endMatch = function (id, callback) { //by id??
   mongo.find(matches, {_id:id}).toArray(function (err, matchesArray) {
     if (matchesArray && matchesArray.length > 0) {
       var match = matchesArray.get(0);
-      mongo.update(users, {name:match.userName1}, {state:USER_STATE_FINISHED});
-      mongo.update(users, {name:match.userName2}, {state:USER_STATE_FINISHED});
-      mongo.update(users, {name:match.userName3}, {state:USER_STATE_FINISHED});
-      mongo.update(users, {name:match.userName4}, {state:USER_STATE_FINISHED});
-      mongo.update(matches, {_id:match._id}, {state:MATCH_STATE_FINISHED});
+      mongo.update(users, {name:match.userName1}, {state:USER_STATE_FINISHED}, function() {});
+      mongo.update(users, {name:match.userName2}, {state:USER_STATE_FINISHED}, function() {});
+      mongo.update(users, {name:match.userName3}, {state:USER_STATE_FINISHED}, function() {});
+      mongo.update(users, {name:match.userName4}, {state:USER_STATE_FINISHED}, function() {});
+      mongo.update(matches, {_id:match._id}, {state:MATCH_STATE_FINISHED}, function() {
+        startMatch(callback);
+      });
     }
   });
 };
