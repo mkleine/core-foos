@@ -57,14 +57,14 @@ Some notes:
   <tr>
     <td>1.</td>
     <td>
-      <s>
+      <span style="text-decoration: line-trough;">
         The <i>player</i> launches it's <i>kicker client</i> and authenticates with the service.
-      </s>
+      </span>
     </td>
     <td>
-      <s>
+      <span style="text-decoration: line-trough;">
         The <i>kicker server</i> performs authentication and displays the main menu.
-      <s>
+      </span>
     </td>
     <td>-</td>
     <td>-</td>
@@ -94,7 +94,11 @@ Some notes:
 
 # WebSocket **client** message API
 
-<p>*Note:* The Arguments are provided as JSON!</p>
+<p>
+  <i>
+    Note: The Arguments are provided as JSON!
+  </i>
+</p>
 
 <table>
   <tr>
@@ -109,7 +113,11 @@ Some notes:
 
 # WebSocket **server** message API
 
-<p>*Note:* The Arguments are provided as JSON!</p>
+<p>
+  <i>
+    Note: The Arguments are provided as JSON!
+  </i>
+</p>
 
 <table>
   <tr>
