@@ -86,7 +86,7 @@ Some notes:
   </tr>
 </table>
 
-# WebSocket **client** message API
+# WebSocket **server** message API
 
 <p>
   <i>
@@ -103,9 +103,17 @@ Some notes:
     <td><code>check_table_state</code></td>
     <td>-</td>
   </tr>
+  <tr>
+    <td><code>register</code></td>
+    <td><code>[{name:String}]</code></td>
+  </tr>
+  <tr>
+    <td><code>end_match</code></td>
+    <td><code>matchId</code></td>
+  </tr>
 </table>
 
-# WebSocket **server** message API
+# WebSocket **client** message API
 
 <p>
   <i>
@@ -127,17 +135,11 @@ Some notes:
       </dl>
     </td>
   </tr>
+  <tr>
+    <td><code>start_match</code></td>
+    <td><code>match</code></td>
+  </tr>
 </table>
-
-
-
-
-
-
-
-
-
-
 
 ## *tbd -* Use case 2: "Book a (complete) kicker match"
 <table>
@@ -232,39 +234,7 @@ Some notes:
 </table>
 
 
-# Websocket API
-<table>
-  <tr>
-    <th>Event Name</th>
-    <th>Where</th>
-    <th>Data</th>
-  </tr>
-  <tr>
-    <td>register</td>
-    <td>Server</td>
-    <td>[{name: String}]</td>
-  </tr>
-  <tr>
-    <td>check_table_state</td>
-    <td>Server</td>
-    <td></td>
-  </tr>
-  <tr>
-    <td>table_state</td>
-    <td>Client</td>
-    <td>{occupied: boolean}</td>
-  </tr>
-  <tr>
-    <td>start_match</td>
-    <td>Client</td>
-    <td>Match</td>
-  </tr>
-  <tr>
-    <td>end_match</td>
-    <td>Server</td>
-    <td>{matchId:String}</td>
-  </tr>
-</table>
+
 
 # Additional Features
 
