@@ -33,7 +33,7 @@ var initialize = function (config) {
     users = new mongodb.Collection(client, usersCollection);
     users.ensureIndex({name:1}, {unique:true}, {});
     matches = new mongodb.Collection(client, matchesCollection);
-    //generateTestData(client);
+    generateTestData(client);
     console.log("Really open");
   });
   console.log("ready for action");
@@ -66,6 +66,10 @@ var generateTestData = function (client) {
   getNumberOfMatches(function (count) {
     console.log("Count:", count);
   });
+
+  startMatch(function () {
+
+  });
 };
 
 var getListOfUsers = function (callback) {
@@ -89,7 +93,7 @@ var getNumberOfMatches = function (callback) {
 var requestPlay = function (newUsers, callback) {
   console.log("Got users: " + newUsers + ", add " + newUsers.length + " users");
   if (newUsers.length == 4) {
-    requestPlayForGroup(newUsers[0].name, newUsers[1].name, newUsers[2].name, newUsers[3].name);
+    requestMatch(newUsers[0].name, newUsers[1].name, newUsers[2].name, newUsers[3].name);
   } else {
     for (i = 0; i < newUsers.length; i++) {
       console.log("Add user: " + newUsers[i].name);
@@ -103,29 +107,16 @@ var requestPlay = function (newUsers, callback) {
   startMatch(callback);
 };
 
-var requestPlayForGroup = function (userName1, userName2, userName3, userName4) {
-  console.log("Got users: " + users + ", add " + userName1 + " " + userName2 + " " + userName3 + " " + userName4);
-  var currentDate = new Date();
-  mongo.upsert(users, {name:userName1}, {state:USER_STATE_MATCH_REQUESTED, date:currentDate}, function () {
-  });
-  mongo.upsert(users, {name:userName2}, {state:USER_STATE_MATCH_REQUESTED, date:currentDate}, function () {
-  });
-  mongo.upsert(users, {name:userName3}, {state:USER_STATE_MATCH_REQUESTED, date:currentDate}, function () {
-  });
-  mongo.upsert(users, {name:userName4}, {state:USER_STATE_MATCH_REQUESTED, date:currentDate}, function () {
-  });
-  requestMatch(userName1, userName2, userName3, userName4);
-};
-
 var requestMatch = function (userName1, userName2, userName3, userName4) {
-  mongo.insert(matches, {date:new Date(), player1:userName1, player2:userName2, player3:userName3, player4:userName4, state:MATCH_STATE_WAITING});
-  mongo.upsert(users, {name:userName1}, {state:USER_STATE_MATCH_REQUESTED}, function () {
+  mongo.upsert(users, {name:userName1}, {state:USER_STATE_MATCH_REQUESTED, date:new Date()}, function () {
   });
-  mongo.upsert(users, {name:userName2}, {state:USER_STATE_MATCH_REQUESTED}, function () {
+  mongo.upsert(users, {name:userName2}, {state:USER_STATE_MATCH_REQUESTED, date:new Date()}, function () {
   });
-  mongo.upsert(users, {name:userName3}, {state:USER_STATE_MATCH_REQUESTED}, function () {
+  mongo.upsert(users, {name:userName3}, {state:USER_STATE_MATCH_REQUESTED, date:new Date()}, function () {
   });
-  mongo.upsert(users, {name:userName4}, {state:USER_STATE_MATCH_REQUESTED}, function () {
+  mongo.upsert(users, {name:userName4}, {state:USER_STATE_MATCH_REQUESTED, date:new Date()}, function () {
+    mongo.insert(matches, {date:new Date(), player1:userName1, player2:userName2, player3:userName3, player4:userName4, state:MATCH_STATE_WAITING}, function () {
+    });
   });
 };
 
@@ -133,31 +124,35 @@ var requestMatch = function (userName1, userName2, userName3, userName4) {
 var matchPlayers = function () {
   getListOfUsers(function (users) {
     if (users.length >= 4) {
+      console.log(users.length)
       requestMatch(users[0].name, users[1].name, users[2].name, users[3].name);
     }
   });
 };
 
 var cancelPlay = function (userName) {
-  mongo.update(users, {name:userName}, {name:userName, state:USER_STATE_CANCELLED}, function() {});
+  mongo.update(users, {name:userName}, {name:userName, state:USER_STATE_CANCELLED}, function () {
+  });
 };
 
-var startMatch = function(callback) {
-  mongo.find(matches, {state: MATCH_STATE_ACTIVE}).toArray(function(err, result){
-      if(result && result.length > 0) {
-        callback({});
+var startMatch = function (callback) {
+  mongo.find(matches, {state:MATCH_STATE_ACTIVE}, {}).toArray(function (err, result) {
+    if (err) {
+      if (result && result.length > 0) {
+        callback();
       } else {
-        getListOfMatches(function(docs) {
+        getListOfMatches(function (docs) {
           if (docs && docs.length > 0) {
             var match = docs[0];
-            mongo.upsert(matches, {_id: match._id}, {state: MATCH_STATE_ACTIVE}, function() {
+            mongo.upsert(matches, {_id:match._id}, {state:MATCH_STATE_ACTIVE}, function () {
               callback(match);
             });
           } else {
-            callback({});
+            callback();
           }
         });
       }
+    }
   });
 };
 
@@ -165,11 +160,15 @@ var endMatch = function (id, callback) { //by id??
   mongo.find(matches, {_id:id}).toArray(function (err, matchesArray) {
     if (matchesArray && matchesArray.length > 0) {
       var match = matchesArray.get(0);
-      mongo.update(users, {name:match.userName1}, {state:USER_STATE_FINISHED}, function() {});
-      mongo.update(users, {name:match.userName2}, {state:USER_STATE_FINISHED}, function() {});
-      mongo.update(users, {name:match.userName3}, {state:USER_STATE_FINISHED}, function() {});
-      mongo.update(users, {name:match.userName4}, {state:USER_STATE_FINISHED}, function() {});
-      mongo.update(matches, {_id:match._id}, {state:MATCH_STATE_FINISHED}, function() {
+      mongo.update(users, {name:match.userName1}, {state:USER_STATE_FINISHED}, function () {
+      });
+      mongo.update(users, {name:match.userName2}, {state:USER_STATE_FINISHED}, function () {
+      });
+      mongo.update(users, {name:match.userName3}, {state:USER_STATE_FINISHED}, function () {
+      });
+      mongo.update(users, {name:match.userName4}, {state:USER_STATE_FINISHED}, function () {
+      });
+      mongo.update(matches, {_id:match._id}, {state:MATCH_STATE_FINISHED}, function () {
         startMatch(callback);
       });
     }

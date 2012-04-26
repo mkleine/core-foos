@@ -18,7 +18,7 @@ var find = function (collection, expr, addExpr) {
   return collection.find(expr, addExpr);
 };
 
-var insert = function (collection, data) {
+var insert = function (collection, data, callback) {
   collection.insert(data, {safe:true},
           function (err, objects) {
             if (err) {
@@ -27,6 +27,7 @@ var insert = function (collection, data) {
             if (err && err.message.indexOf('E11000 ') !== -1) {
               // this _id was already inserted in the database
             }
+            callback()
           });
 };
 
