@@ -9,7 +9,7 @@
   </parent>
 
   <groupId>com.coremedia.hackathon</groupId>
-  <artifactId>core-foos-client</artifactId>
+  <artifactId>client-jangaroo</artifactId>
   <packaging>war</packaging>
 
   <properties>

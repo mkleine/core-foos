@@ -10,7 +10,7 @@
   </parent>
 
   <groupId>com.coremedia.hackathon</groupId>
-  <artifactId>core-foos-client</artifactId>
+  <artifactId>client</artifactId>
 
   <modules>
     <module>client-jangaroo</module>
