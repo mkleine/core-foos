@@ -12,7 +12,7 @@ In the following we provide the basic use-cases represented in table-form. The n
 Some notes:
 
 42. The use cases define a so-called "Sunny Day Scenario", that means they don't cope with things like invalid input data and such (this would be placed in "use case deviation" tables)
-42. Terms and concepts that should be consistent among uses cases are printed in *italic*.
+42. Terms and concepts - that should be consistent among uses cases - are printed in *italic*.
 42. The priority of use cases is defined by their order of appearance.
 
 ## Important terms and concepts
@@ -20,6 +20,13 @@ Some notes:
   <tr>
     <th>Term/Concept</th>
     <th>Description</th>
+  </tr>
+  <tr>
+    <td><i>entry screen</i></td>
+    <td>
+      The view that is presented to the <i>player</i> when he launches his <i>kicker client.
+      In web UIs this refers to the home page, in native Apps this would be the main menu.</i>
+    </td>
   </tr>
   <tr>
     <td><i>player</i></td>
@@ -57,21 +64,33 @@ Some notes:
   <tr>
     <td>1.</td>
     <td>
-      The <i>player</i> launches it's <i>kicker client</i> and authenticates with the service.
+      <ul>
+        <li>
+          <b>Hackathon:</b> The <i>player</i> launches it's <i>kicker client</i>.
+        </li>
+        <li>
+          <b>Later on:</b> The <i>player</i> launches it's <i>kicker client</i> and authenticates with the service.
+        </li>
+      </ul>
     </td>
     <td>
-      The <i>kicker server</i> performs authentication and displays the main menu.
+      <ul>
+        <li>
+          <b>Hackathon:</b> The <i>kicker client</i> show the <i>entry screen</i>.
+        </li>
+        <li>
+          <b>Later on:</b> The <i>kicker server</i> performs authentication and the <i>kicker client</i> displays the <i>entry screen</i>.
+        </li>
+      </ul>
     </td>
     <td>-</td>
     <td>-</td>
-    <td>
-      <b>Note:</b> This step will be implemented <i>after a substantial amount of business logic has been coded</i>.
-    </td>
+    <td>-</td>
   </tr>
   <tr>
     <td>2.</td>
     <td>
-      The <i>player</i> chooses to check the kicker table's status in the main menu.
+      The <i>player</i> can check the kicker table's status.
     </td>
     <td>
       The <i>kicker server</i> sends a message containing the corresponding table state.
