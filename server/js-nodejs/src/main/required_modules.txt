@@ -1,1 +1,1 @@
-mongodb socket.io node-static
+mongodb --mongodb:native socket.io node-static
