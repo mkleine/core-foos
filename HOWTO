@@ -1,7 +1,15 @@
-NodeJs:
-http://nodejs.org/#download
-sudo apt-get install libssl-dev
-node example.js
+INSTALL
+
+ NodeJS:
+  http://nodejs.org/#download
+  sudo apt-get install libssl-dev
+  (test with
+    node example.js
+   )
+
+ Mongo:
+  http://www.mongodb.org/downloads
+
 
 Install native MongoDB driver:
 npm config set loglevel info
@@ -15,3 +23,11 @@ npm install socket.io
 Websockets:
 http://elegantcode.com/2011/05/04/taking-baby-steps-with-node-js-websockets/
 
+
+RUN
+
+ Mongo:
+  mongod
+
+ CoreFoosServer:
+  node core-foos-sockets.js
