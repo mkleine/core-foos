@@ -43,7 +43,101 @@ Some notes:
   </tr>
 </table>
 
-## Use case 01: "Book a (complete) kicker match"
+## Use case 1: "Check if kicker table is free"
+
+<table>
+  <tr>
+    <th>Step</th>
+    <th>Actor intention</th>
+    <th>System responsibility</th>
+    <th>WebSocket client message</th>
+    <th>WebSocket server message</th>
+    <th>Comment</th>
+  </tr>
+  <tr>
+    <td>1.</td>
+    <td>
+      <s>
+        The <i>player</i> launches it's <i>kicker client</i> and authenticates with the service.
+      </s>
+    </td>
+    <td>
+      <s>
+        The <i>kicker server</i> performs authentication and displays the main menu.
+      <s>
+    </td>
+    <td>-</td>
+    <td>-</td>
+    <td>
+      <b>Note:</b> Maybe we implement this step after some business logic has been coded.
+    </td>
+  </tr>
+  <tr>
+    <td>2.</td>
+    <td>
+      The <i>player</i> chooses to check the kicker table's status in the main menu.
+    </td>
+    <td>
+      The <i>kicker server</i> sends a message containing the corresponding table state.
+    </td>
+    <td>
+      <code>check_table_state</code>
+    </td>
+    <td>
+      <code>table_state</code>
+    </td>
+    <td>
+      <b>Note:</b> Maybe we implement this step after some business logic has been coded.
+    </td>
+  </tr>
+</table>
+
+# WebSocket **client** message API
+
+<p>*Note:* The Arguments are provided as JSON!</p>
+
+<table>
+  <tr>
+    <th>Message</th>
+    <th>Argument properties</th>
+  </tr>
+  <tr>
+    <td><code>check_table_state</code></td>
+    <td>-</td>
+  </tr>
+</table>
+
+# WebSocket **server** message API
+
+<p>*Note:* The Arguments are provided as JSON!</p>
+
+<table>
+  <tr>
+    <th>Message</th>
+    <th>Argument properties</th>
+  </tr>
+  <tr>
+    <td><code>table_state</code></td>
+    <td>
+      <dl>
+        <dt><code>occupied</code></dt>
+        <dd><code>true|false</code></dd>
+      </dl>
+    </td>
+  </tr>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+## *tbd -* Use case 2: "Book a (complete) kicker match"
 <table>
   <tr>
     <th>Step</th>
@@ -81,7 +175,9 @@ Some notes:
   </tr>
 </table>
 
-## Use case 03: "Dequeue from the *match queue*" (when kicker match ended)
+## *tbd -* Use case 3: "Book a (complete) kicker match with 'Quick Match' option"
+
+## *tbd -* Use case 4: "Dequeue from the *match queue*" (when kicker match ended)
 
 <table>
   <tr>
@@ -104,7 +200,7 @@ Some notes:
   </tr>
 </table>
 
-## Use case 02: "Enqueue for a kicker match" (match making)
+## *tbd -* Use case 5: "Enqueue for a kicker match" (Match Making)
 
 <table>
   <tr>
@@ -150,8 +246,9 @@ Some notes:
 
 * WebSockets
      * [Api @ W3C](http://en.wikipedia.org/wiki/WebSocket)
-          * [Api @ W3C](http://en.wikipedia.org/wiki/WebSocket)
-          * [Demo Apps](http://www.websocket.org/demos.html)
+     * [Demo Apps](http://www.websocket.org/demos.html)
+     * [Node.js module](http://www.devthought.com/2009/12/06/nodejs-and-the-websocket-protocol/)
+
 * Web Worker - "JavaScript threads"; compute sth. in the background whilst continuing doing some other stuff in the UI
      * [Wikipedia](http://en.wikipedia.org/wiki/Web_worker)
 * Canvas - HTML element to render arbitrary complex things to; one did even implement a [famous retro game](http://www.adityaravishankar.com/projects/games/command-and-conquer/)
