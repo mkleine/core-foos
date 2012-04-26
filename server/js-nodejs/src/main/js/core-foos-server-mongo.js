@@ -2,8 +2,14 @@ var remove = function (collection, expr) {
   collection.remove(expr);
 };
 
-var update = function (collection, oldValue, newValue) {
-  collection.update(oldValue, newValue);
+var update = function (collection, selector, newValue) {
+  collection.update(selector, newValue, {safe:true});
+};
+
+var upsert = function (collection, selector, newValue, callback) {
+  collection.update(selector, newValue, {upsert:true, safe:true}, function(err, result) {
+     callback();
+  });
 };
 
 var find = function (collection, expr, addExpr) {
@@ -22,15 +28,16 @@ var insert = function (collection, data) {
           });
 };
 
-var count = function (collection, callback) {
-  return collection.count({}, function (err, count) {
+var count = function (collection, expr, callback) {
+  return collection.count(expr, function (err, count) {
     console.log("Number of matches: " + count);
     callback(count);
   });
-}
+};
 
 exports.remove = remove;
 exports.update = update;
+exports.upsert = upsert;
 exports.find = find;
 exports.insert = insert;
 exports.count = count;

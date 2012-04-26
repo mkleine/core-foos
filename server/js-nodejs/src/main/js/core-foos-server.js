@@ -7,9 +7,14 @@ var matchesCollection = "matches";
 var users;
 var matches;
 
-var getUserByName = function (collection, userName) {
-  return mongo.find(collection, {name:userName}, {});
-};
+
+var USER_STATE_MATCH_REQUESTED = "MATCH_REQUESTED";
+var USER_STATE_WAITING = "WAITING";
+var USER_STATE_FINISHED = "FINISHED";
+var USER_STATE_CANCELLED = "CANCELLED";
+
+var MATCH_STATE_FINISHED = "FINISHED";
+var MATCH_STATE_WAITING = "WAITING";
 
 var initialize = function (config) {
   console.log("initializing server");
@@ -31,7 +36,7 @@ var initialize = function (config) {
     console.log("Really open");
   });
   console.log("ready for action");
-}
+};
 
 var generateTestData = function (client) {
   requestPlay('Frauke');
@@ -39,65 +44,85 @@ var generateTestData = function (client) {
   requestPlay('Moritz');
   requestPlay('Kai');
   requestPlay('xyz');
-  requestMatch({});
+  requestMatch('user1', 'user2', 'user3', 'user4');
 
   // cancelPlay('xyz');
-  // getListOfUsers();
+  getListOfUsers(function (users) {
+    console.log("Num users: " + users.length)
+  });
 
   matchPlayers();
-  getNumberOfMatches(function(count) {
+  getNumberOfMatches(function (count) {
     console.log("Count:", count);
   });
 };
 
 var getListOfUsers = function (callback) {
   console.log("Get list of users");
-  var result;
-//  return mongo.find(err, users, {}, {limit:10});
-  return mongo.find(users, {}, {limit:10}).toArray(function (err, docs) {
+  return mongo.find(users, {state:USER_STATE_WAITING}, {}).sort('date', 1).limit(50).toArray(function (err, docs) {
     callback(docs);
   });
-
-  return result;
-};
-
-var requestPlay = function (newUsers) {
-  console.log("Got users: " + newUsers + ", add " +newUsers.length + " users");
-  for (i=0;i<newUsers.length;i++) {
-    console.log("Add user: " + newUsers[i].name);
-    if (newUsers[i].name) {
-      mongo.insert(users, {name:newUsers[i].name});
-    }
-  }
-};
-
-var cancelPlay = function (userName) {
-  mongo.remove(users, {name:userName});
-};
-
-var matchPlayers = function () {
-//  var users = getListOfUsers(err);
-//  if (users.size() >= 4) {
-//    requestMatch(err, users);
-//  }
-};
-
-var requestMatch = function (users) {
-  mongo.insert(matches, {});
-};
-
-var endMatch = function (id) { //by id??
-  mongo.remove(matches, {_id:id})
 };
 
 var getNumberOfMatches = function (callback) {
-  mongo.count(matches, callback);
-}
+  mongo.count(matches, {state:MATCH_STATE_WAITING}, callback);
+};
+
+var requestPlay = function (userName) {
+  console.log("Got users: " + users + ", add " + userName);
+  mongo.upsert(users, {name:userName}, {name:userName, state:USER_STATE_WAITING, date:new Date()}, function() {
+    matchPlayers();
+  });
+};
+
+var requestPlayForGroup = function (userName1, userName2, userName3, userName4) {
+  console.log("Got users: " + users + ", add " + userName1 + " " + userName2 + " " + userName3 + " " + userName4);
+  var currentDate = new Date();
+  mongo.upsert(users, {name:userName1}, {name:userName1, state:USER_STATE_MATCH_REQUESTED, date:currentDate}, function() {});
+  mongo.upsert(users, {name:userName2}, {name:userName2, state:USER_STATE_MATCH_REQUESTED, date:currentDate}, function() {});
+  mongo.upsert(users, {name:userName3}, {name:userName3, state:USER_STATE_MATCH_REQUESTED, date:currentDate}, function() {});
+  mongo.upsert(users, {name:userName4}, {name:userName4, state:USER_STATE_MATCH_REQUESTED, date:currentDate}, function() {});
+  requestMatch(userName1, userName2, userName3, userName4);
+};
+
+var requestMatch = function (userName1, userName2, userName3, userName4) {
+  mongo.insert(matches, {date:new Date(), player1:userName1, player2:userName2, player3:userName3, player4:userName4, state:MATCH_STATE_WAITING});
+  mongo.upsert(users, {name:userName1}, {name:userName1, state:USER_STATE_MATCH_REQUESTED}, function() {});
+  mongo.upsert(users, {name:userName2}, {name:userName2, state:USER_STATE_MATCH_REQUESTED}, function() {});
+  mongo.upsert(users, {name:userName3}, {name:userName3, state:USER_STATE_MATCH_REQUESTED}, function() {});
+  mongo.upsert(users, {name:userName4}, {name:userName4, state:USER_STATE_MATCH_REQUESTED}, function() {});
+};
+
+
+var matchPlayers = function () {
+  getListOfUsers(function (users) {
+    if (users.length >= 4) {
+      requestMatch(users[0].name, users[1].name, users[2].name, users[3].name);
+    }
+  });
+};
+
+var cancelPlay = function (userName) {
+  mongo.update(users, {name:userName}, {name:userName, state:USER_STATE_CANCELLED});
+};
+
+var endMatch = function (id) { //by id??
+  mongo.find(matches, {_id:id}).toArray(function (err, matchesArray) {
+    if (matchesArray && matchesArray.length > 0) {
+      var match = matchesArray.get(0);
+      mongo.update(users, {name:match.userName1}, {state:USER_STATE_FINISHED});
+      mongo.update(users, {name:match.userName2}, {state:USER_STATE_FINISHED});
+      mongo.update(users, {name:match.userName3}, {state:USER_STATE_FINISHED});
+      mongo.update(users, {name:match.userName4}, {state:USER_STATE_FINISHED});
+      mongo.update(matches, {_id:match._id}, {state:MATCH_STATE_FINISHED});
+    }
+  });
+};
 
 exports.getListOfUsers = getListOfUsers;
 exports.requestPlay = requestPlay;
+exports.requestPlayForGroup = requestPlayForGroup;
 exports.cancelPlay = cancelPlay;
-exports.requestMatch = requestMatch;
 exports.endMatch = endMatch;
 exports.initialize = initialize;
 exports.getNumberOfMatches = getNumberOfMatches;
