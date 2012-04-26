@@ -44,14 +44,20 @@ function initServerConnection() {
     initStatusView(getQueueSize(), getOccupied());
   });
 
-  webSocket.on('start_match', function(data) {
-    alert("Start match with " + JSON.stringify(data));
+  webSocket.on('start_match', function (data) {
+//    alert("Start match with " + JSON.stringify(data));
+    checkTableState();
   });
 
   webSocket.on('waiting_matches', function (data) {
     setQueueSize(data.length);
     initStatusView(getQueueSize(), getOccupied());
   });
+
+  webSocket.on('registration_complete', function (data) {
+//    alert(data);
+  });
+
 }
 
 function initUi() {
@@ -90,11 +96,17 @@ function initUi() {
 
   // add booking button click function
   queueBookingButton.click(function () {
-    var players = [{ name: queuePlayer1Name.val()},{ name: queuePlayer2Name.val()},{ name:  queuePlayer3Name.val()}, { name: queuePlayer4Name.val()}];
+    var players = [
+      { name:queuePlayer1Name.val()},
+      { name:queuePlayer2Name.val()},
+      { name:queuePlayer3Name.val()},
+      { name:queuePlayer4Name.val()}
+    ];
     var filteredPlayers = new Array();
-    for (var i = 0; i< players.length; i++) {
-      if (players[i].name && players[i].name.length >0)
+    for (var i = 0; i < players.length; i++) {
+      if (players[i].name && players[i].name.length > 0) {
         filteredPlayers.push(players[i]);
+      }
     }
     toggleBooking(true, filteredPlayers);
   });
@@ -178,19 +190,19 @@ function refreshQueueSize() {
   $("#queueSizeValue").text(getQueueSize());
 }
 
-function setQueueSize( queueSizeVal) {
+function setQueueSize(queueSizeVal) {
   queueSize = queueSizeVal;
 }
 
-function getQueueSize(){
+function getQueueSize() {
   return queueSize;
 }
 
-function setOccupied( flag) {
+function setOccupied(flag) {
   occupied = flag;
 }
 
-function getOccupied(){
+function getOccupied() {
   return occupied;
 }
 
