@@ -1,10 +1,14 @@
 <!DOCTYPE html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <html>
 <head>
   <title>ui test</title>
   <link href='http://fonts.googleapis.com/css?family=Nunito' rel='stylesheet' type='text/css'>
   <link href='http://fonts.googleapis.com/css?family=Oxygen' rel='stylesheet' type='text/css'>
   <link rel="stylesheet" type="text/css" href="resources/css/main.css"/>
+
+  <script type="text/javascript" src="resources/javascript/jquery-1.7.2.js"></script>
+  <script type="text/javascript" src="resources/javascript/main.js"></script>
 </head>
 
 <body>
@@ -13,15 +17,43 @@
   &nbsp;
   <div id="statusContainer">
     <div id="statusTitle">Kickerstatus</div>
-    <div id="statusView">besetzt</div>
+    <div id="statusView"></div>
     <div id="statusCounter">
       <img src="resources/images/clock-icon.png">
-      <div><span>seit 12 Minuten</span></div>
+
+      <div class="countdownText"><span>seit 12 Minuten</span></div>
     </div>
   </div>
   &nbsp;
 </div>
 
-<center><input type="button" value="buchen"/></center>
+<div id="statsContainer">
+  <div id="statsInnerContainer">
+
+    <div class="statsDetailContainer">
+      <div id="queueSizeValue" class="statsDetailValue">3</div>
+      <div class="statsDetailLabel">Anzahl Buchungen</div>
+    </div>
+
+  </div>
+</div>
+
+<div id="queueContainer">
+  <div class="queueEntry">
+    <div class="queueAddEntryButton"></div>
+    <div class="queueAddEntryText">Neues Match erstellen</div>
+  </div>
+
+  <div id="queueEntry_1" class="queueEntry">
+    <div class="queueRemoveEntryButton"></div>
+    <div class="queuePlayerContainer">
+      <div class="queuePlayerImage"></div>
+      <div class="queuePlayerName"><input type="text" name="player1"></div>
+    </div>
+  </div>
+
+</div>
+
+<center><input type="button" id="bookingButton" onclick="toggleBooking()"/></center>
 </body>
 </html>

@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  font-family: 'Verdana';
+  font-family: 'Verdana', serif;
 }
 
 #header {
@@ -8,20 +8,18 @@ body {
 }
 
 #statusContainer {
-
   margin: 20px auto;
   width: 300px;
   text-align: center;
 }
 
 #statusTitle {
-
   margin-bottom: 5px;
   color: #bcb1ad;
 }
 
 #statusView {
-  background-color: #7fa331;
+
   padding: 10px;
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
@@ -30,8 +28,24 @@ body {
   border: 1px solid #a2c25d;
   color: white;
   font-size: 30pt;
-  font-family: 'Arial';
+  font-family: 'Arial', serif;
   font-weight: bold;
+
+}
+
+#statusView.statusFree {
+  background-color: #7fa331;
+  border: 1px solid #a2c25d;
+}
+
+#statusView.statusOccupied {
+  background-color: #a34631;
+  border: 1px solid #c47155;
+}
+
+#statusView.statusWaiting {
+  background-color: #b5a927;
+  border: 1px solid #d9cd4d;
 }
 
 #statusCounter {
@@ -48,10 +62,126 @@ body {
   color: #bcb1ad;
 }
 
-#statusCounter div {
+#statusCounter .countdownText {
   margin-top: -10px;
   display: inline-block;
   height: 19px;
   margin-left: 5px;
-  vertical-align:middle;
+  vertical-align: middle;
+}
+
+/* ------ Stats ------*/
+
+#statsContainer {
+  text-align: center;
+  background-color: #eeeeee;
+}
+
+#statsInnerContainer {
+  display: inline-block;
+  margin: 0 auto;
+}
+
+#statsInnerContainer .statsDetailContainer {
+  margin: 10px 30px;
+  display: inline-block;
+}
+
+#statsInnerContainer .statsDetailValue {
+  display: inline;
+  font-size: 24pt;
+  color: #828282;
+}
+
+#statsInnerContainer .statsDetailLabel {
+  display: inline;
+  font-size: 11pt;
+  color: #b3b2b2;
+}
+
+/* ------ Queue ------*/
+#queueContainer {
+  text-align: center;
+  margin-top: 30px;
+}
+
+#queueContainer .queueEntry {
+  display: inline-block;
+  background-color: #f9f9f9;
+  margin: 10px auto;
+  padding: 8px 10px;
+  border: 1px solid #eeeeee;
+  width: 900px;
+  text-align: left;
+}
+
+#queueContainer .queueAddEntryButton {
+  display: inline-block;
+  background: url(../images/addMatchToQueueButton.png);
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+}
+
+#queueContainer .queueAddEntryButton.active {
+  background: url(../images/addMatchToQueueButton_hover.png);
+}
+
+#queueContainer .queueAddEntryText {
+  display: inline-block;
+  vertical-align: middle;
+  margin-top: -25px;
+  margin-left: 15px;
+  color: #848484;
+}
+
+#queueContainer .queueRemoveEntryButton {
+  display: inline-block;
+  background: url(../images/addMatchToQueueButton.png);
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  -moz-transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+  -o-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+#queueContainer .queueRemoveEntryButton.active {
+  background: url(../images/addMatchToQueueButton_hover.png);
+}
+
+#queueContainer .queuePlayerContainer {
+  display: inline-block;
+}
+
+#queueContainer .queuePlayerImage {
+  display: inline-block;
+  background: url(../images/player-inactive.png);
+  width: 32px;
+  height: 30px;
+}
+
+#queueContainer .queuePlayerImage.active {
+  background: url(../images/player-active.png);
+}
+
+#queueContainer .queuePlayerName {
+  display: inline-block;
+  margin-left: 5px;
+}
+
+
+#queueContainer .queuePlayerName input {
+  margin-top: -22px;
+  vertical-align: middle;
+  font-family: Arial, sans-serif;
+  color: #848484;
+  font-size: 15px;
+  border: 1px solid #e1e1e1;
+  background-color: #fcfcfc;
+  height: 22px;
+  width: 150px;
+  padding: 3px;
+
 }
