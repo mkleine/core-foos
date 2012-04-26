@@ -15,7 +15,7 @@ console.log("config:");
 console.dir(config);
 
 var clientFiles = new static.Server(config.dir);
-repository.initialize();
+repository.initialize(config);
 
 console.log("Ready to listen");
 

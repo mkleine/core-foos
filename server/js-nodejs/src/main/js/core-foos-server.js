@@ -4,8 +4,6 @@ var mongo = require('./core-foos-server-mongo');
 var usersCollection = "users";
 var matchesCollection = "matches";
 
-var server = new mongodb.Server("127.0.0.1", 27017, {});
-var client = new mongodb.Db('test', server, {});
 var users;
 var matches;
 
@@ -13,8 +11,14 @@ var getUserByName = function (collection, userName) {
   return mongo.find(collection, {name:userName}, {});
 };
 
-var initialize = function () {
-  console.log("initialize server");
+var initialize = function (config) {
+  console.log("initializing server");
+  const mongoHost = config.mongoHost ? config.mongoHost : 'localhost';
+  const mongoPort = config.mongoPort ? config.mongoPort : 27017;
+  const mongoDbName = config.mongoDb ? config.mongoDb : 'test';
+
+  var server = new mongodb.Server(mongoHost, mongoPort, {});
+  var client = new mongodb.Db(mongoDbName, server, {});
   client.open(function (err, client) {
     console.log("Open");
     if (err) {
