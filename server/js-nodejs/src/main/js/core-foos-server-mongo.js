@@ -3,11 +3,11 @@ var remove = function (collection, expr) {
 };
 
 var update = function (collection, selector, newValue) {
-  collection.update(selector, newValue, {safe:true});
+  collection.update(selector, {$set:newValue}, {safe:true});
 };
 
 var upsert = function (collection, selector, newValue, callback) {
-  collection.update(selector, newValue, {upsert:true, safe:true}, function(err, result) {
+  collection.update(selector, {$set:newValue}, {upsert:true, safe:true}, function(err, result) {
      callback();
   });
 };
