@@ -33,7 +33,7 @@ var initialize = function (config) {
     users = new mongodb.Collection(client, usersCollection);
     users.ensureIndex({name:1}, {unique:true}, {});
     matches = new mongodb.Collection(client, matchesCollection);
-    generateTestData(client);
+    // generateTestData(client);
     console.log("Really open");
   });
   console.log("ready for action");
@@ -93,20 +93,20 @@ var getNumberOfMatches = function (callback) {
 var requestPlay = function (newUsers, callback) {
   console.log("Got users: " + newUsers + ", add " + newUsers.length + " users");
   if (newUsers.length == 4) {
-    requestMatch(newUsers[0].name, newUsers[1].name, newUsers[2].name, newUsers[3].name);
+    requestMatch(newUsers[0].name, newUsers[1].name, newUsers[2].name, newUsers[3].name, callback);
   } else {
     for (i = 0; i < newUsers.length; i++) {
       console.log("Add user: " + newUsers[i].name);
       if (newUsers[i].name) {
         mongo.upsert(users, {name:newUsers[i].name}, {state:USER_STATE_WAITING, date:new Date()}, function () {
-          matchPlayers();
+          matchPlayers(callback);
         });
       }
     }
   }
 };
 
-var requestMatch = function (userName1, userName2, userName3, userName4) {
+var requestMatch = function (userName1, userName2, userName3, userName4, callback) {
   mongo.upsert(users, {name:userName1}, {state:USER_STATE_MATCH_REQUESTED, date:new Date()}, function () {
   });
   mongo.upsert(users, {name:userName2}, {state:USER_STATE_MATCH_REQUESTED, date:new Date()}, function () {
@@ -121,11 +121,11 @@ var requestMatch = function (userName1, userName2, userName3, userName4) {
 };
 
 
-var matchPlayers = function () {
+var matchPlayers = function (callback) {
   getListOfUsers(function (users) {
     if (users.length >= 4) {
       console.log(users.length)
-      requestMatch(users[0].name, users[1].name, users[2].name, users[3].name);
+      requestMatch(users[0].name, users[1].name, users[2].name, users[3].name, callback);
     }
   });
 };
@@ -137,7 +137,6 @@ var cancelPlay = function (userName) {
 
 var startMatch = function (callback) {
   mongo.find(matches, {state:MATCH_STATE_ACTIVE}, {}).toArray(function (err, result) {
-    if (err) {
       if (result && result.length > 0) {
         callback();
       } else {
@@ -145,6 +144,7 @@ var startMatch = function (callback) {
           if (docs && docs.length > 0) {
             var match = docs[0];
             mongo.upsert(matches, {_id:match._id}, {state:MATCH_STATE_ACTIVE}, function () {
+              console.log("Really start match");
               callback(match);
             });
           } else {
@@ -152,7 +152,6 @@ var startMatch = function (callback) {
           }
         });
       }
-    }
   });
 };
 

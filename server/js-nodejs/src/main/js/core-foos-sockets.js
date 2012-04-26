@@ -27,18 +27,27 @@ var httpServer = http.createServer(function (request, response) {
 httpServer.listen(2000);
 
 var webSocket = socketIO.listen(httpServer);
+
+
 webSocket.on('connection', function (client) {
   client.emit("message", 'Welcome to Core Foo Kicker App');
   client.on('register', function(data) {
 
   // [{name:"player1"}, {name:"player2"}]
 
-  repository.requestPlay(data);
+  repository.requestPlay(data, function(match) {
+    console.log("maybe start a match with " + JSON.stringify(match));
+    if (match) {
+      console.log("start match");
+      client.broadcast.emit("start_match", match);
+      client.emit("start_match", match);
+    }
+  });
 
     // client.emit("message", users + ' has entered the play zone.');
     // client.broadcast.emit("enter", user);
     // client.emit("enter", user);
-    updateUserList(client);
+    // updateMatchPlan(client);
     return;
   });
 
@@ -54,25 +63,25 @@ webSocket.on('connection', function (client) {
     getTableState(client);
     return;
   });
+
+  client.on('end_match', function(data) {
+    repository.endMatch(data.matchId, function(match) {
+      if (match) {
+        client.broadcast.emit("start_match", match);
+      }
+    });
+    return;
+  });
 });
-
-function updateUserList(client) {
-
-  repository.getListOfUsers(function (users) {
-            client.broadcast.emit("list", users);
-            client.emit("list", users);
-          }
-  );
-}
 
 function getTableState(client) {
   repository.getNumberOfMatches(function (count) {
             if (count == 0) {
-              client.broadcast.emit("table_state", true);
-              client.emit("table_state", true);
+              client.broadcast.emit("table_state", {occupied: false});
+              client.emit("table_state", {occupied: false});
             } else {
-              client.broadcast.emit("table_state", false);
-              client.emit("table_state", false);
+              client.broadcast.emit("table_state", {occupied: true});
+              client.emit("table_state", {occupied: true});
             }
           }
   );
