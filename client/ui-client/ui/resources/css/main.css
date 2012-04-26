@@ -1,0 +1,57 @@
+body {
+  margin: 0;
+  font-family: 'Verdana';
+}
+
+#header {
+  background-color: #4e3e38;
+}
+
+#statusContainer {
+
+  margin: 20px auto;
+  width: 300px;
+  text-align: center;
+}
+
+#statusTitle {
+
+  margin-bottom: 5px;
+  color: #bcb1ad;
+}
+
+#statusView {
+  background-color: #7fa331;
+  padding: 10px;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  -khtml-border-radius: 10px;
+  border-radius: 10px;
+  border: 1px solid #a2c25d;
+  color: white;
+  font-size: 30pt;
+  font-family: 'Arial';
+  font-weight: bold;
+}
+
+#statusCounter {
+  background-color: #3c2e29;
+  padding: 3px 10px;
+  display: inline-block;
+  margin: 0 auto;
+  -moz-border-radius: 0 0 10px 10px;
+  -webkit-border-radius: 0 0 10px 10px;
+  -khtml-border-radius: 0 0 10px 10px;
+  border-radius: 0 0 10px 10px;
+  border: 1px solid #655651;
+  font-size: 10pt;
+  color: #bcb1ad;
+}
+
+#statusCounter div {
+  margin-top: -10px;
+  display: inline-block;
+  height: 19px;
+  margin-left: 5px;
+  vertical-align:middle;
+}
