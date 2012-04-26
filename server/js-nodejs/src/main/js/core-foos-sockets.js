@@ -3,19 +3,19 @@ var socketIO = require('socket.io');
 var static = require('node-static');
 var repository = require('./core-foos-server');
 
-var config = {};
+
+var config;
 try{
-  eval(process.argv[2]);
+  config = eval('(function(){return '+process.argv[2]+'})()');
+  console.log("config:");
+  console.dir(config);
 } catch(e){
-  //ignore
+  config = {dir:'./client'};
+  console.warn("cannot parse config: "+ e);
+  console.log("falling back to default config");
 }
-console.log("config:");
-console.dir(config);
-var dir = config['dir'];
-if(!dir){
-  dir = './client';
-}
-var clientFiles = new static.Server(dir);
+
+var clientFiles = new static.Server(config.dir);
 repository.initialize();
 
 console.log("Ready to listen");
