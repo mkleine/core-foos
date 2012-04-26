@@ -40,6 +40,7 @@ webSocket.on('connection', function (client) {
                 client.broadcast.emit("start_match", match);
                 client.emit("start_match", match);
             }
+            client.emit('registration_complete');
         });
         return;
     });
@@ -82,9 +83,15 @@ webSocket.on('connection', function (client) {
     });
 
   client.on('waiting_matches', function () {
+      /*
     repository.getNumberOfMatches(function (res) {
       client.emit('waiting_matches', res);
     });
+    */
+      repository.getListOfMatches(function (res) {
+           client.emit('waiting_matches', res);
+         });
+
     return;
   });
 });

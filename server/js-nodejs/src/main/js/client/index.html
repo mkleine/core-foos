@@ -101,7 +101,9 @@
 
     webSocket.on('waiting_matches', function (data) {
       // $('#messages').append('<li>Is occupied?</li>');
-      $('#messages').append('<li>There are currently ' + data + ' matches waiting</li>');
+        alert('MATCHES:'+JSON.stringify(data));
+        if (data)
+            $('#messages').append('<li>There are currently ' + data.length + ' matches waiting</li>');
     });
 
     webSocket.on('leave', function (user) {

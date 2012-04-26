@@ -196,3 +196,4 @@ exports.currentMatch = currentMatch;
 exports.initialize = initialize;
 exports.getNumberOfMatches = getNumberOfMatches;
 exports.getNumberOfActiveMatches = getNumberOfActiveMatches;
+exports.getListOfMatches = getListOfMatches;
