@@ -104,7 +104,6 @@ var requestPlay = function (newUsers, callback) {
       }
     }
   }
-  startMatch(callback);
 };
 
 var requestMatch = function (userName1, userName2, userName3, userName4) {
@@ -116,6 +115,7 @@ var requestMatch = function (userName1, userName2, userName3, userName4) {
   });
   mongo.upsert(users, {name:userName4}, {state:USER_STATE_MATCH_REQUESTED, date:new Date()}, function () {
     mongo.insert(matches, {date:new Date(), player1:userName1, player2:userName2, player3:userName3, player4:userName4, state:MATCH_STATE_WAITING}, function () {
+      startMatch(callback);
     });
   });
 };
