@@ -18,9 +18,13 @@ httpServer.listen(2000);
 var webSocket = socketIO.listen(httpServer);
 webSocket.on('connection', function(client) {
   client.emit("message", 'Welcome to Core Foo Kicker App');
-  client.on('enter', function(user) {
-    repository.requestPlay(user);
-    client.emit("message", user + ' has entered the play zone.');
+  client.on('register', function(data) {
+
+  // [{name:"player1"}, {name:"player2"}]
+
+  repository.requestPlay(data);
+
+    // client.emit("message", users + ' has entered the play zone.');
     // client.broadcast.emit("enter", user);
     // client.emit("enter", user);
     updateUserList(client);
