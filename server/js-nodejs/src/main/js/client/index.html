@@ -1,0 +1,78 @@
+<html>
+<head>
+  <title>Core Foo</title>
+</head>
+<body>
+<p>Welcome to CoreFoo V0.01</p>
+<div>
+  <p>
+    <label for="user">User name</label>
+    <input type="text" id="user"/>
+  </p>
+  <p>
+    <button id="enterButton">Enter</button>
+  </p>
+
+  <p>
+    <button id="leaveButton">Leave</button>
+  </p>
+
+</div>
+<p>Messages</p>
+<div>
+  <ul id="messages">
+  </ul>
+</div>
+<p>Players</p>
+<div>
+  <ul id="players">
+  </ul>
+</div>
+
+<script type="text/javascript" src="http://localhost:2000/socket.io/socket.io.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.5.2.js"></script>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    var webSocket =  io.connect('http://localhost:2000');
+
+    webSocket.on('connect', function() {
+      $('#messages').append('<li>Connected to the server.</li>');
+    });
+
+    webSocket.on('message', function(message) {
+      $('#messages').append('<li>' + message + '</li>');
+    });
+
+    webSocket.on('enter', function(user) {
+      $('#players').append('<li>' + user + '</li>');
+    });
+
+    webSocket.on('leave', function(user) {
+      $('#players').append('<li>no more ' + user + '</li>');
+    });
+
+    webSocket.on('disconnect', function() {
+      $('#messages').append('<li>Disconnected from the server.</li>');
+    });
+
+    webSocket.on('list', function(users) {
+      $('#players').remove();
+      $('#players').append('<li>Update</li>');
+    });
+
+    $('#enterButton').bind('click', function() {
+      var user = $('#user').val();
+      webSocket.emit("enter", user);
+      $('#user').val('');
+    });
+    $('#leaveButton').bind('click', function() {
+      var user = $('#user').val();
+      webSocket.emit("leave", user);
+      $('#user').val('');
+    });
+
+  });
+</script>
+</body>
+</html>

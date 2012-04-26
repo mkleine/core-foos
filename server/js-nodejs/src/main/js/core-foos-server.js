@@ -13,15 +13,21 @@ var getUserByName = function (collection, userName) {
   return mongo.find(collection, {name:userName}, {});
 };
 
-client.open(function (err, client) {
-  if (err) {
-    throw err;
-  }
-  users = new mongodb.Collection(client, usersCollection);
-  users.ensureIndex({name:1}, {unique:true}, {});
-  matches = new mongodb.Collection(client, matchesCollection);
-  generateTestData(client);
-});
+var initialize = function() {
+  console.log("initialize server");
+  client.open(function (err, client) {
+    console.log("Open");
+    if (err) {
+      throw err;
+    }
+    users = new mongodb.Collection(client, usersCollection);
+    users.ensureIndex({name:1}, {unique:true}, {});
+    matches = new mongodb.Collection(client, matchesCollection);
+    // generateTestData(client);
+    console.log("Really open");
+  });
+  console.log("ready for action");
+}
 
 var generateTestData = function (client) {
   requestPlay('Frauke');
@@ -30,21 +36,25 @@ var generateTestData = function (client) {
   requestPlay('Kai');
   requestPlay('xyz');
 
-  cancelPlay('xyz');
-  console.log(getListOfUsers());
+  // cancelPlay('xyz');
+  // getListOfUsers();
 
   matchPlayers();
 };
 
-var getListOfUsers = function () {
+var getListOfUsers = function (callback) {
+  console.log("Get list of users");
+  var result;
 //  return mongo.find(err, users, {}, {limit:10});
   return mongo.find(users, {}, {limit:10}).toArray(function (err, docs) {
-    console.dir(docs);
-    return docs;
+    callback(docs);
   });
+
+  return result;
 };
 
 var requestPlay = function (userName) {
+  console.log("Got users: " + users + ", add " +userName);
   mongo.insert(users, {name:userName});
 };
 
@@ -72,3 +82,4 @@ exports.requestPlay = requestPlay;
 exports.cancelPlay = cancelPlay;
 exports.requestMatch = requestMatch;
 exports.endMatch = endMatch;
+exports.initialize = initialize;
