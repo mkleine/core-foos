@@ -57,14 +57,10 @@ Some notes:
   <tr>
     <td>1.</td>
     <td>
-      <span>
-        ~~The <i>player</i> launches it's <i>kicker client</i> and authenticates with the service.~~
-      </span>
+      <span>~~The <i>player</i> launches it's <i>kicker client</i> and authenticates with the service.~~</span>
     </td>
     <td>
-      <span>
-        ~~The <i>kicker server</i> performs authentication and displays the main menu.~~
-      </span>
+      <span>~~The <i>kicker server</i> performs authentication and displays the main menu.~~</span>
     </td>
     <td>-</td>
     <td>-</td>
