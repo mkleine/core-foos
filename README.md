@@ -56,15 +56,11 @@ Some notes:
   </tr>
   <tr>
     <td>1.</td>
-    <td>
-      <span style="text-decoration: line-through;">
-        The <i>player</i> launches it's <i>kicker client</i> and authenticates with the service.
-      </span>
+    <td style="text-decoration: line-through;">
+      The <i>player</i> launches it's <i>kicker client</i> and authenticates with the service.
     </td>
-    <td>
-      <span style="text-decoration: line-through;">
-        The <i>kicker server</i> performs authentication and displays the main menu.
-      </span>
+    <td style="text-decoration: line-through;">
+      The <i>kicker server</i> performs authentication and displays the main menu.
     </td>
     <td>-</td>
     <td>-</td>
