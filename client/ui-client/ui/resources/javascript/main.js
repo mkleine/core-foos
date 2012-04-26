@@ -12,7 +12,8 @@ var statusWaitingText = "wartend";
 var buttonRemoveBookingText = "buchung zurückziehen";
 var buttonAddBookingText = "buchung";
 
-var QUEUE_SIZE = 0;
+var occupied = false;
+var queueSize = 0;
 var webSocket;
 
 // init
@@ -22,11 +23,11 @@ $(function () {
 
   $("#statusView").text(statusFreeText);
   $("#bookingButton").val(buttonAddBookingText);
+  $("#queueSizeValue").text(queueSize);
   $("#dropUsers").text('dropUsers');
   $("#dropUsers").click(dropUsers);
   $("#dropMatches").text('dropMatches');
   $("#dropMatches").click(dropMatches);
-  $("#queueSizeValue").text(QUEUE_SIZE);
 //  initStatusView(QUEUE_SIZE);
   refreshQueueSize();
   initUi();
@@ -35,19 +36,21 @@ $(function () {
 function initServerConnection() {
   webSocket = io.connect('http://co5pcdv03.coremedia.com:2000');
   webSocket.on('connect', function () {
-    console.info('Connected to the server.');
+    alert('Connected to the server.');
   });
 
-  webSocket.on('table_state', function (isTableFree) {
-    initStatusView(QUEUE_SIZE, isTableFree);
+  webSocket.on('table_state', function (data) {
+    setOccupied(data.occupied);
+    initStatusView(getQueueSize(), getOccupied());
   });
 
   webSocket.on('start_match', function(data) {
-    console.info("Start match with " + JSON.stringify(data));
+    alert("Start match with " + JSON.stringify(data));
   });
 
-  webSocket.on('administration', function (cmd) {
-    console.info("completed administration cmd: " + cmd);
+  webSocket.on('waiting_matches', function (data) {
+    setQueueSize(data.length);
+    initStatusView(getQueueSize(), getOccupied());
   });
 }
 
@@ -88,7 +91,12 @@ function initUi() {
   // add booking button click function
   queueBookingButton.click(function () {
     var players = [{ name: queuePlayer1Name.val()},{ name: queuePlayer2Name.val()},{ name:  queuePlayer3Name.val()}, { name: queuePlayer4Name.val()}];
-    toggleBooking(true, players);
+    var filteredPlayers = new Array();
+    for (var i = 0; i< players.length; i++) {
+      if (players[i].name && players[i].name.length >0)
+        filteredPlayers.push(players[i]);
+    }
+    toggleBooking(true, filteredPlayers);
   });
 }
 
@@ -131,35 +139,33 @@ function checkPlayerText() {
     queueBookingButton.attr("class", "bookingButton active");
   }
 }
-function initStatusView(queueSize, isTableFree) {
+function initStatusView(queueSize, isTableOccupied) {
 
 
-  if (queueSize == 0 && isTableFree) {
+  if (getQueueSize() == 0 && !isTableOccupied) {
     $("#statusView").attr('class', "statusFree");
     $("#statusView").text(statusFreeText);
   }
-  else if (queueSize >= 1 && isTableFree) {
+  else if (getQueueSize() >= 1 && !isTableOccupied) {
     $("#statusView").attr('class', "statusWaiting");
     $("#statusView").text(statusWaitingText);
   }
-  else if (queueSize >= 1 && !isTableFree) {
+  else if (getQueueSize() >= 1 && isTableOccupied) {
     $("#statusView").attr('class', "statusOccupied");
     $("#statusView").text(statusOccupiedText);
   }
+
+  $("#queueSizeValue").text(getQueueSize());
 }
 
 function toggleBooking(bookFlag, players) {
   if (bookFlag) {
-    addToQueue();
     webSocket.emit("register", players);
-//    checkTableState();
-    /* $("#statusView").text(statusOccupiedText);
-     $("#statusView").attr('class', "statusOccupied");
-     $("#bookingButton").val(buttonRemoveBookingText);*/
+    checkTableState();
   }
   else {
     removeFromQueue();
-    if (QUEUE_SIZE == 0) {
+    if (queueSize == 0) {
       $("#statusView").text(statusFreeText);
       $("#statusView").attr('class', "statusFree");
     }
@@ -169,22 +175,28 @@ function toggleBooking(bookFlag, players) {
 }
 
 function refreshQueueSize() {
-  $("#queueSizeValue").text(QUEUE_SIZE);
+  $("#queueSizeValue").text(getQueueSize());
 }
 
-function addToQueue() {
-  QUEUE_SIZE++;
-  refreshQueueSize();
+function setQueueSize( queueSizeVal) {
+  queueSize = queueSizeVal;
 }
 
-function removeFromQueue() {
-  QUEUE_SIZE--;
-  refreshQueueSize();
+function getQueueSize(){
+  return queueSize;
 }
 
+function setOccupied( flag) {
+  occupied = flag;
+}
+
+function getOccupied(){
+  return occupied;
+}
 
 function checkTableState() {
   webSocket.emit("check_table_state");
+  webSocket.emit("waiting_matches");
 }
 
 function dropUsers() {
