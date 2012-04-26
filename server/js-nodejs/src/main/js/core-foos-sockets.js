@@ -57,6 +57,12 @@ webSocket.on('connection', function (client) {
         return;
     });
 
+  client.on('current_match', function() {
+    repository.currentMatch(function (match) {
+    client.emit('current_match', match);
+    return;
+  })});
+
     client.on('end_match', function (data) {
         repository.endMatch(data.matchId, function (match) {
             if (match) {
@@ -75,16 +81,22 @@ webSocket.on('connection', function (client) {
         return;
     });
 
+  client.on('waiting_matches', function () {
+    repository.getNumberOfMatches(function (res) {
+      client.emit('waiting_matches', res);
+    });
+    return;
+  });
 });
 
 function getTableState(client) {
-    repository.getNumberOfMatches(function (count) {
+    repository.getNumberOfActiveMatches(function (count) {
             if (count == 0) {
-                client.broadcast.emit("table_state", {occupied:false, count:0});
-                client.emit("table_state", {occupied:false, count:0});
+                client.broadcast.emit("table_state", {occupied:false});
+                client.emit("table_state", {occupied:false});
             } else {
-                client.broadcast.emit("table_state", {occupied:true, count:count});
-                client.emit("table_state", {occupied:true, count:count});
+                client.broadcast.emit("table_state", {occupied:true});
+                client.emit("table_state", {occupied:true});
             }
         }
     );

@@ -1,73 +1,77 @@
 <html>
 <head>
-    <title>Core Foo</title>
+  <title>Core Foo</title>
 </head>
 <body>
 <p>Welcome to CoreFoo V0.01</p>
 
 <div>
-    <p>
-        <label for="user1">User name</label>
-        <input type="text" id="user1"/>
-    </p>
+  <p>
+    <label for="user1">User name</label>
+    <input type="text" id="user1"/>
+  </p>
 
-    <p>
-        <label for="user2">User name</label>
-        <input type="text" id="user2"/>
-    </p>
+  <p>
+    <label for="user2">User name</label>
+    <input type="text" id="user2"/>
+  </p>
 
-    <p>
-        <label for="user3">User name</label>
-        <input type="text" id="user3"/>
-    </p>
+  <p>
+    <label for="user3">User name</label>
+    <input type="text" id="user3"/>
+  </p>
 
-    <p>
-        <label for="user4">User name</label>
-        <input type="text" id="user4"/>
-    </p>
+  <p>
+    <label for="user4">User name</label>
+    <input type="text" id="user4"/>
+  </p>
 
-    <p>
-        <label for="currentMatch">Current match</label>
-        <input type="text" id="currentMatch"/>
-    </p>
+  <p>
+    <label for="currentMatch">Current match</label>
+    <input type="text" id="currentMatch"/>
+  </p>
 
-    <p>
-        <button id="enterButton">Enter</button>
-    </p>
+  <p>
+    <button id="enterButton">Enter</button>
+  </p>
 
-    <p>
-        <button id="leaveButton">Leave</button>
-    </p>
+  <p>
+    <button id="leaveButton">Leave</button>
+  </p>
 
-    <p>
-        <button id="checkStateButton">Check State</button>
-    </p>
+  <p>
+    <button id="checkStateButton">Check State</button>
+  </p>
 
-    <p>
-        <button id="endMatchButton">End match</button>
-    </p>
+  <p>
+    <button id="endMatchButton">End match</button>
+  </p>
 
-    <p>
-       <button id="getListOfUsers">List of users</button>
-    </p>
+  <p>
+    <button id="getListOfUsers">List of users</button>
+  </p>
+
+  <p>
+    <button id="currentMatchButton">Get current match</button>
+  </p>
 </div>
 <p>Messages</p>
 
 <div>
-    <ul id="messages">
-    </ul>
+  <ul id="messages">
+  </ul>
 </div>
 <p>Players</p>
 
 <div>
-    <ul id="players">
-    </ul>
+  <ul id="players">
+  </ul>
 </div>
 
 <p>Users Waiting</p>
 <div>
-    <ul id="listOfUsers">
-    </ul>
+  <ul id="listOfUsers">
+  </ul>
 </div>
 
 
@@ -75,95 +79,110 @@
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.5.2.js"></script>
 
 <script type="text/javascript">
-    $(document).ready(function () {
-        var webSocket = io.connect('http://localhost:2000');
+  $(document).ready(function () {
+    var webSocket = io.connect('http://localhost:2000');
 
-        webSocket.on('connect', function () {
-            $('#messages').append('<li>Connected to the server.</li>');
-        });
-
-        webSocket.on('message', function (message) {
-            $('#messages').append('<li>' + message + '</li>');
-        });
-
-        webSocket.on('enter', function (user) {
-            $('#players').append('<li>' + user + '</li>');
-        });
-
-        webSocket.on('table_state', function (data) {
-            // $('#messages').append('<li>Is occupied?</li>');
-            $('#messages').append('<li>Is occupied=' + data.occupied + '</li>');
-        });
-
-        webSocket.on('leave', function (user) {
-            $('#players').append('<li>no more ' + user + '</li>');
-        });
-
-        webSocket.on('disconnect', function () {
-            $('#messages').append('<li>Disconnected from the server.</li>');
-        });
-
-        webSocket.on('start_match', function (data) {
-            // alert("Start match with " + JSON.stringify(data));
-            $('#messages').append('<li>Start match.</li>');
-            $('#currentMatch').val(data.match._id);
-        });
-
-        webSocket.on('list', function (users) {
-            $('#players').append('<li>Update</li>');
-            // $('#players').childdren().remove();
-            // $('#messages').append('<li>Update list</li>');
-        });
-
-        webSocket.on('list_of_users', function (users) {
-            $('#listOfUsers').html('');
-            for (var i = 0; i < users.length; i++) {
-                $('#listOfUsers').append('<li>' + users[i].name + '</li>');
-            }
-        });
-
-        $('#enterButton').bind('click', function () {
-            var user1 = $('#user1').val();
-            var user2 = $('#user2').val();
-            var user3 = $('#user3').val();
-            var user4 = $('#user4').val();
-            var users = new Array();
-            if (user1) {
-                users[0] = {name:user1};
-            }
-            if (user2) {
-                users[1] = {name:user2};
-            }
-            if (user3) {
-                users[2] = {name:user3};
-            }
-            if (user4) {
-                users[3] = {name:user4};
-            }
-            webSocket.emit("register", users);
-            $('#user1').val('');
-            $('#user2').val('');
-            $('#user3').val('');
-            $('#user4').val('');
-        });
-        $('#leaveButton').bind('click', function () {
-            var user = $('#user').val();
-            webSocket.emit("leave", user);
-            $('#user').val('');
-        });
-        $('#checkStateButton').bind('click', function () {
-            webSocket.emit("check_table_state");
-        });
-        $('#endMatchButton').bind('click', function () {
-            var matchId = $('#currentMatch').val();
-            webSocket.emit("end_match", {matchId:matchId});
-            $('#currentMatch').val('');
-        });
-
-        $('#getListOfUsers').bind('click', function () {
-            webSocket.emit("get_list_of_users");
-        });
+    webSocket.on('connect', function () {
+      $('#messages').append('<li>Connected to the server.</li>');
     });
+
+    webSocket.on('message', function (message) {
+      $('#messages').append('<li>' + message + '</li>');
+    });
+
+    webSocket.on('enter', function (user) {
+      $('#players').append('<li>' + user + '</li>');
+    });
+
+    webSocket.on('table_state', function (data) {
+      // $('#messages').append('<li>Is occupied?</li>');
+      $('#messages').append('<li>Is occupied=' + data.occupied + '</li>');
+    });
+
+    webSocket.on('waiting_matches', function (data) {
+      // $('#messages').append('<li>Is occupied?</li>');
+      $('#messages').append('<li>There are currently ' + data + ' matches waiting</li>');
+    });
+
+    webSocket.on('leave', function (user) {
+      $('#players').append('<li>no more ' + user + '</li>');
+    });
+
+    webSocket.on('disconnect', function () {
+      $('#messages').append('<li>Disconnected from the server.</li>');
+    });
+
+    webSocket.on('start_match', function (data) {
+      // alert("Start match with " + JSON.stringify(data));
+      $('#messages').append('<li>Start match.</li>');
+      $('#currentMatch').val(data.match._id);
+    });
+
+    webSocket.on('list', function (users) {
+      $('#players').append('<li>Update</li>');
+      // $('#players').childdren().remove();
+      // $('#messages').append('<li>Update list</li>');
+    });
+
+    webSocket.on('current_match', function (match) {
+      if(match) {
+        $('#currentMatch').val(match._id);
+      }
+    });
+
+    webSocket.on('list_of_users', function (users) {
+      $('#listOfUsers').html('');
+      for (var i = 0; i < users.length; i++) {
+        $('#listOfUsers').append('<li>' + users[i].name + '</li>');
+      }
+    });
+
+    $('#enterButton').bind('click', function () {
+      var user1 = $('#user1').val();
+      var user2 = $('#user2').val();
+      var user3 = $('#user3').val();
+      var user4 = $('#user4').val();
+      var users = new Array();
+      if (user1) {
+        users[0] = {name:user1};
+      }
+      if (user2) {
+        users[1] = {name:user2};
+      }
+      if (user3) {
+        users[2] = {name:user3};
+      }
+      if (user4) {
+        users[3] = {name:user4};
+      }
+      webSocket.emit("register", users);
+      $('#user1').val('');
+      $('#user2').val('');
+      $('#user3').val('');
+      $('#user4').val('');
+    });
+    $('#leaveButton').bind('click', function () {
+      var user = $('#user').val();
+      webSocket.emit("leave", user);
+      $('#user').val('');
+    });
+    $('#checkStateButton').bind('click', function () {
+      webSocket.emit("check_table_state");
+      webSocket.emit("waiting_matches");
+    });
+    $('#endMatchButton').bind('click', function () {
+      var matchId = $('#currentMatch').val();
+      webSocket.emit("end_match", {matchId:matchId});
+      $('#currentMatch').val('');
+    });
+
+    $('#getListOfUsers').bind('click', function () {
+      webSocket.emit("get_list_of_users");
+    });
+    $('#currentMatchButton').bind('click', function () {
+      webSocket.emit("current_match");
+    });
+  });
 </script>
 </body>
 </html>

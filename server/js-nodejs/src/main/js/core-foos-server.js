@@ -90,6 +90,10 @@ var getNumberOfMatches = function (callback) {
   mongo.count(matches, {state:MATCH_STATE_WAITING}, callback);
 };
 
+var getNumberOfActiveMatches = function (callback) {
+  mongo.count(matches, {state:MATCH_STATE_ACTIVE}, callback);
+};
+
 var requestPlay = function (newUsers, callback) {
   console.log("Got users: " + newUsers + ", add " + newUsers.length + " users");
   if (newUsers.length == 4) {
@@ -97,7 +101,7 @@ var requestPlay = function (newUsers, callback) {
   } else {
     for (i = 0; i < newUsers.length; i++) {
       console.log("Add user: " + newUsers[i].name);
-      if (newUsers[i].name) {
+      if (newUsers[i].name && newUsers[i].name.length > 0) {
         mongo.upsert(users, {name:newUsers[i].name}, {state:USER_STATE_WAITING, date:new Date()}, function () {
           matchPlayers(callback);
         });
@@ -175,9 +179,20 @@ var endMatch = function (id, callback) { //by id??
   });
 };
 
+var currentMatch = function (callback) {
+  mongo.find(matches, {state:MATCH_STATE_ACTIVE}, {}).toArray(function (err, result) {
+    if (result && result.length > 0) {
+      callback(result[0]);
+    }
+    callback();
+});
+};
+
 exports.getListOfUsers = getListOfUsers;
 exports.requestPlay = requestPlay;
 exports.cancelPlay = cancelPlay;
 exports.endMatch = endMatch;
+exports.currentMatch = currentMatch;
 exports.initialize = initialize;
 exports.getNumberOfMatches = getNumberOfMatches;
+exports.getNumberOfActiveMatches = getNumberOfActiveMatches;
