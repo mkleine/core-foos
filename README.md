@@ -136,12 +136,15 @@ Some notes:
 # Additional Features
 
 * Web UI fits device's viewport resolution (CSS Media Queries)
-* **(Optional)** Addtional Notification via
-** E-Mail
-** Instant messaging
-* **(Optional)** Authentication via QR-Code
-** A spcific QR-Code is generated and attached to the kicker
-** Scanning the QR-Code will trigger a URL that automatically removes the active match from the *match queue*
+* (Optional) Addtional Notification via
+     * E-Mail
+     * Instant messaging
+* (Optional) Additional kicker client implementations using
+     * [HAXE](http://haxe.org/) or
+     * [PhoneGap](http://phonegap.com/start)
+* (Optional) Authentication via QR-Code
+     * A spcific QR-Code is generated and attached to the kicker
+     * Scanning the QR-Code will trigger a URL that automatically removes the active match from the *match queue*)
 
 # Weblinks
 
