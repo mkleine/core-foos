@@ -153,6 +153,7 @@ body {
 #queueContainer .queuePlayerContainer {
   display: inline-block;
   margin-right: 20px;
+  margin-left: 5px;
 }
 
 #queueContainer .queuePlayerImage {
@@ -174,7 +175,7 @@ body {
 
 #queueContainer .queuePlayerName {
   display: inline-block;
-  margin-left: 5px;
+  margin-left: 8px;
 }
 
 
@@ -192,6 +193,10 @@ body {
 
 }
 
+
+#queueContainer .queuePlayerName input[disabled] {
+  border: none;
+}
 #queueContainer .bookingButton {
   display: inline-block;
   background: url(../images/sport_soccer_inactive.png);

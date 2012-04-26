@@ -15,7 +15,7 @@ var buttonAddBookingText = "buchung";
 var occupied = false;
 var queueSize = 0;
 var webSocket;
-
+var testIndex = 2;
 // init
 $(function () {
   initServerConnection();
@@ -51,29 +51,57 @@ function initServerConnection() {
 
   webSocket.on('waiting_matches', function (data) {
     setQueueSize(data.length);
+    showQueueList(data);
     initStatusView(getQueueSize(), getOccupied());
   });
 
   webSocket.on('registration_complete', function (data) {
-//    alert(data);
+    alert("register"+data);
   });
 
 }
 
-function initUi() {
 
+function showQueueList(matches){
+
+  matches.forEach(function(item){
+    addReadOnlyQueueEntry(testIndex);
+    testIndex++;
+  });
+}
+
+function addReadOnlyQueueEntry(number){
+  $('<div id="queueEntry_'+number+'" class="queueEntry"></div>').appendTo('#queueContainer');
+  $('<div class="queueRemoveEntryButton"></div>').appendTo('#queueEntry_'+number);
+
+  addPlayerContainer(1, '#queueEntry_'+number);
+  addPlayerContainer(2, '#queueEntry_'+number);
+  addPlayerContainer(3, '#queueEntry_'+number);
+  addPlayerContainer(4, '#queueEntry_'+number);
+}
+
+function addPlayerContainer(playerNumber, rootQueueEntryContainerId){
+
+  $('<div class="queuePlayerContainer '+playerNumber+'Player"></div>').appendTo(rootQueueEntryContainerId);
+  $('<div class="queuePlayerImage active"></div>').appendTo(rootQueueEntryContainerId+' .queuePlayerContainer.'+playerNumber+'Player');
+  $('<div class="queuePlayerName"><input type="text" disabled></div>').appendTo(rootQueueEntryContainerId+' .queuePlayerContainer.'+playerNumber+'Player');
+
+}
+
+function initUi() {
+//  addReadOnlyQueueEntry(3);
   var queueAddEntryButton = $("#queueContainer .queueAddEntryButton");
   var queueRemoveEntryButton = $("#queueContainer .queueRemoveEntryButton");
-  var queuePlayer1Image = $("#queueEntry_1 .queuePlayerContainer.firstPlayer .queuePlayerImage");
-  var queuePlayer2Image = $("#queueEntry_1 .queuePlayerContainer.secondPlayer .queuePlayerImage");
-  var queuePlayer3Image = $("#queueEntry_1 .queuePlayerContainer.thirdPlayer .queuePlayerImage");
-  var queuePlayer4Image = $("#queueEntry_1 .queuePlayerContainer.fourthPlayer .queuePlayerImage");
+  var queuePlayer1Image = $("#queueEntry_1 .queuePlayerContainer.1Player .queuePlayerImage");
+  var queuePlayer2Image = $("#queueEntry_1 .queuePlayerContainer.2Player .queuePlayerImage");
+  var queuePlayer3Image = $("#queueEntry_1 .queuePlayerContainer.3Player .queuePlayerImage");
+  var queuePlayer4Image = $("#queueEntry_1 .queuePlayerContainer.4Player .queuePlayerImage");
 
 
-  var queuePlayer1Name = $("#queueEntry_1 .queuePlayerContainer.firstPlayer .queuePlayerName input");
-  var queuePlayer2Name = $("#queueEntry_1 .queuePlayerContainer.secondPlayer .queuePlayerName input");
-  var queuePlayer3Name = $("#queueEntry_1 .queuePlayerContainer.thirdPlayer .queuePlayerName input");
-  var queuePlayer4Name = $("#queueEntry_1 .queuePlayerContainer.fourthPlayer .queuePlayerName input");
+  var queuePlayer1Name = $("#queueEntry_1 .queuePlayerContainer.1Player .queuePlayerName input");
+  var queuePlayer2Name = $("#queueEntry_1 .queuePlayerContainer.2Player .queuePlayerName input");
+  var queuePlayer3Name = $("#queueEntry_1 .queuePlayerContainer.3Player .queuePlayerName input");
+  var queuePlayer4Name = $("#queueEntry_1 .queuePlayerContainer.4Player .queuePlayerName input");
 
 
   var queueBookingButton = $("#queueEntry_1 .bookingButton");
@@ -140,10 +168,10 @@ function togglePlayerImage(playerImageContainer, playerInputContainer) {
 
 function checkPlayerText() {
 
-  var queuePlayer1Name = $("#queueEntry_1 .queuePlayerContainer.firstPlayer .queuePlayerName input");
-  var queuePlayer2Name = $("#queueEntry_1 .queuePlayerContainer.secondPlayer .queuePlayerName input");
-  var queuePlayer3Name = $("#queueEntry_1 .queuePlayerContainer.thirdPlayer .queuePlayerName input");
-  var queuePlayer4Name = $("#queueEntry_1 .queuePlayerContainer.fourthPlayer .queuePlayerName input");
+  var queuePlayer1Name = $("#queueEntry_1 .queuePlayerContainer.1Player .queuePlayerName input");
+  var queuePlayer2Name = $("#queueEntry_1 .queuePlayerContainer.2Player .queuePlayerName input");
+  var queuePlayer3Name = $("#queueEntry_1 .queuePlayerContainer.3Player .queuePlayerName input");
+  var queuePlayer4Name = $("#queueEntry_1 .queuePlayerContainer.4Player .queuePlayerName input");
 
   var queueBookingButton = $("#queueEntry_1 .bookingButton");
 
@@ -157,6 +185,10 @@ function initStatusView(queueSize, isTableOccupied) {
   if (getQueueSize() == 0 && !isTableOccupied) {
     $("#statusView").attr('class', "statusFree");
     $("#statusView").text(statusFreeText);
+  }
+  else if (getQueueSize() == 0 && isTableOccupied) {
+    $("#statusView").attr('class', "statusOccupied");
+    $("#statusView").text(statusOccupiedText);
   }
   else if (getQueueSize() >= 1 && !isTableOccupied) {
     $("#statusView").attr('class', "statusWaiting");
@@ -218,3 +250,4 @@ function dropUsers() {
 function dropMatches() {
   webSocket.emit("administration","dropMatches");
 }
+
