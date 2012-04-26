@@ -32,18 +32,28 @@ var initialize = function (config) {
     users = new mongodb.Collection(client, usersCollection);
     users.ensureIndex({name:1}, {unique:true}, {});
     matches = new mongodb.Collection(client, matchesCollection);
-    generateTestData(client);
+    //generateTestData(client);
     console.log("Really open");
   });
   console.log("ready for action");
 };
 
 var generateTestData = function (client) {
-  requestPlay([{name:'Frauke'}]);
-  requestPlay([{name:'Tom'}]);
-  requestPlay([{name:'Moritz'}]);
-  requestPlay([{name:'Kai'}]);
-  requestPlay([{name:'xyz'}]);
+  requestPlay([
+    {name:'Frauke'}
+  ]);
+  requestPlay([
+    {name:'Tom'}
+  ]);
+  requestPlay([
+    {name:'Moritz'}
+  ]);
+  requestPlay([
+    {name:'Kai'}
+  ]);
+  requestPlay([
+    {name:'xyz'}
+  ]);
   requestMatch('user1', 'user2', 'user3', 'user4');
 
   // cancelPlay('xyz');
@@ -68,7 +78,7 @@ var getNumberOfMatches = function (callback) {
   mongo.count(matches, {state:MATCH_STATE_WAITING}, callback);
 };
 
-var requestPlay = function (newUsers) {
+var requestPlay = function (newUsers, callback) {
   console.log("Got users: " + newUsers + ", add " + newUsers.length + " users");
   if (newUsers.length == 4) {
     requestPlayForGroup(newUsers[0].name, newUsers[1].name, newUsers[2].name, newUsers[3].name);
