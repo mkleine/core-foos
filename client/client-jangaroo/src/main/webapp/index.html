@@ -5,9 +5,32 @@
   <title>CoreFoos Jangaroo Client</title>
   <script type="text/javascript" src="http://localhost:2000/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="joo/jangaroo-application-all.js"></script>
+  <style type="text/css">
+
+    #table_status {
+      width: 200px;
+      height: 100px;
+    }
+
+    .status_available {
+      background-color: green;
+    }
+
+    .status_occupied {
+      background-color: red;
+    }
+
+    .status_unknown {
+      background-color: #d3d3d3;
+    }
+
+  </style>
 </head>
 
-<body onload="joo.classLoader.run('com.coremedia.core_foos.CoreFoos', 'ws://localhost:2000');">
+<body onload="joo.classLoader.run('com.coremedia.core_foos.CoreFoos', 'ws://localhost:2000', 'table_status');">
+
+<div id="table_status" class="status_unknown"></div>
+
 
 </body>
 </html>

@@ -9,6 +9,6 @@ public class Socket {
 
   public native function disconnect():void;
 
-  public native function emit(message:String):void;
+  public native function emit(message:String, parameter:Object=null):void;
 }
 }
