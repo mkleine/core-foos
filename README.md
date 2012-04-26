@@ -105,7 +105,7 @@ Some notes:
   </tr>
 </table>
 
-# WebSocket **server** message API
+# WebSocket **server** message API (aka "what the server responds to")
 
 <p>
   <i>
@@ -132,7 +132,7 @@ Some notes:
   </tr>
 </table>
 
-# WebSocket **client** message API
+# WebSocket **client** message API (aka "what the client *may* respond to")
 
 <p>
   <i>
