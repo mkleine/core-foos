@@ -17,10 +17,10 @@ var MATCH_STATE_FINISHED = "FINISHED";
 var MATCH_STATE_WAITING = "WAITING";
 
 var initialize = function (config) {
-  console.log("initializing server");
   const mongoHost = config.mongoHost ? config.mongoHost : 'localhost';
   const mongoPort = config.mongoPort ? config.mongoPort : 27017;
-  const mongoDbName = config.mongoDb ? config.mongoDb : 'test';
+  const mongoDbName = config.mongoDb ? config.mongoDb : 'core-foos';
+  console.log("initializing server: " + mongoDbName + ":" + mongoHost + ":" + mongoPort);
 
   var server = new mongodb.Server(mongoHost, mongoPort, {});
   var client = new mongodb.Db(mongoDbName, server, {});
