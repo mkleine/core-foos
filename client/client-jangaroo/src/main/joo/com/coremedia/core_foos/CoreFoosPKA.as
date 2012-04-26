@@ -5,16 +5,21 @@ package com.coremedia.core_foos {
  */
 public class CoreFoosPKA {
 
+  private var url:String;
+  private const REQUEST_CHECKTABLESTATE:String = "check_table_state";
+  private const RESPONSE_CHECKTABLESTATE:String = "table_state";
+
   public static function main(url:String)  : void {
     new CoreFoosPKA(url);
   }
 
-  private var url:String;
+
 
   public function CoreFoosPKA(url:String) {
     this.url = url;
     log("Using url "+url);
     checkTableStateSocketIO();
+    //checkTableStateWebsocket();
   }
 
   private function checkTableStateSocketIO() : void {
@@ -24,11 +29,16 @@ public class CoreFoosPKA {
     {
       log("connected to "+url+" using socket.io");
 
-      var tableState:Object = ws.emit('check_table_state');
-      log("check_table_state: "+dump(tableState));
+      var tableState:Object = ws.emit(REQUEST_CHECKTABLESTATE);
+      log(REQUEST_CHECKTABLESTATE+": "+dump(tableState));
 
       log("disconnecting ...");
       ws.disconnect();
+    });
+
+
+    ws.on('message', function():void {
+      log("")
     });
 
     ws.on('disconnect', function():void {
@@ -40,12 +50,12 @@ public class CoreFoosPKA {
   private function checkTableStateWebsocket() : void {
 
 
-    var ws:Object = new window.WebSocket("ws://localhost:2000");
+    var ws:Object = new window.WebSocket(url);
     ws.onopen = function():void
     {
       log("connected to "+url+" using websocket");
-      var tableState:Object = ws.send('check_table_state');
-      log("check_table_state: "+tableState);
+      var tableState:Object = ws.send(REQUEST_CHECKTABLESTATE);
+      log(REQUEST_CHECKTABLESTATE+": "+tableState);
 
       log("disconnecting ...");
       ws.close();
@@ -56,11 +66,14 @@ public class CoreFoosPKA {
       var msg:String = evt.data;
       log("Received "+msg+" from "+url);
     };
+
     ws.onclose = function():void
     {
       // websocket is closed.
       log("disconnected");
     };
+
+    log("Created WebSocket: "+dump(ws));
   }
 
   private static function log(message:String) :void {
