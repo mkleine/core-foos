@@ -24,12 +24,12 @@
       <type>jangaroo</type>
       <version>${jangaroo.version}</version>
     </dependency>
-    <dependency>
+<!--    <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>ext-as</artifactId>
       <type>jangaroo</type>
       <version>${jangaroo.version}</version>
-    </dependency>
+    </dependency>-->
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>joounit</artifactId>
