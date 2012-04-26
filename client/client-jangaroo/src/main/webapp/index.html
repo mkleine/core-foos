@@ -27,10 +27,12 @@
   </style>
 </head>
 
-<body onload="joo.classLoader.run('com.coremedia.core_foos.CoreFoos', 'ws://localhost:2000', 'table_status');">
+<body onload="joo.classLoader.run('com.coremedia.core_foos.CoreFoos', 'ws://localhost:2000', 'status', 'join', 'leave');">
 
-<div id="table_status" class="status_unknown"></div>
+<div id="status" class="status_unknown">Status</div>
 
+<button id="join">Join</button>
+<button id="leave">Leave</button>
 
 </body>
 </html>
