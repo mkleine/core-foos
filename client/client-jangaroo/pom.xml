@@ -18,6 +18,7 @@
   </properties>
 
   <dependencies>
+
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-net</artifactId>
@@ -26,17 +27,18 @@
     </dependency>
 <!--    <dependency>
       <groupId>net.jangaroo</groupId>
-      <artifactId>ext-as</artifactId>
+      <artifactId>joounit</artifactId>
       <type>jangaroo</type>
       <version>${jangaroo.version}</version>
     </dependency>-->
     <dependency>
       <groupId>net.jangaroo</groupId>
-      <artifactId>joounit</artifactId>
-      <type>jangaroo</type>
+      <artifactId>jangaroo-browser</artifactId>
       <version>${jangaroo.version}</version>
-      <scope>test</scope>
+      <type>jangaroo</type>
     </dependency>
+
+
   </dependencies>
 
   <build>

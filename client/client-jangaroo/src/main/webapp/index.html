@@ -3,10 +3,11 @@
 
 <head>
   <title>CoreFoos Jangaroo Client</title>
+  <script type="text/javascript" src="http://localhost:2000/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="joo/jangaroo-application-all.js"></script>
 </head>
 
-<body onload="joo.classLoader.run('com.coremedia.core_foos.CoreFoos');">
+<body onload="joo.classLoader.run('com.coremedia.core_foos.CoreFoosPKA', 'ws://localhost:2000');">
 
 </body>
 </html>

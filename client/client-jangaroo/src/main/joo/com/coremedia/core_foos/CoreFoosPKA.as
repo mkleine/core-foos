@@ -22,10 +22,10 @@ public class CoreFoosPKA {
     var ws:Object = window.io.connect(url);
     ws.on('connect', function():void
     {
-      log("connected to "+url);
+      log("connected to "+url+" using socket.io");
 
       var tableState:Object = ws.emit('check_table_state');
-      log("check_table_state: "+tableState);
+      log("check_table_state: "+dump(tableState));
 
       log("disconnecting ...");
       ws.disconnect();
@@ -40,33 +40,61 @@ public class CoreFoosPKA {
   private function checkTableStateWebsocket() : void {
 
 
-//    var ws:Object = window.io.connect(url); //new window.WebSocket("ws://localhost:2000");
-//    ws.onopen = function():void
-//    {
-//      window.alert("Open");
-//      // Web Socket is connected, send data using send()
-//      ws.send("Message to send");
-//    };
-//
-//    ws.onmessage = function (evt:Object):void
-//    {
-//      var msg:String = evt.data;
-//      window.alert("Message is received...");
-//    };
-//    ws.onclose = function():void
-//    {
-//      // websocket is closed.
-//      window.alert("Connection is closed...");
-//    };
-//
-//
-//    window.alert("Ok1: "+ws+" "+url);
-//    ws.emit("check_table_state");
-//    window.alert("Ok2: "+ws);
+    var ws:Object = new window.WebSocket("ws://localhost:2000");
+    ws.onopen = function():void
+    {
+      log("connected to "+url+" using websocket");
+      var tableState:Object = ws.send('check_table_state');
+      log("check_table_state: "+tableState);
+
+      log("disconnecting ...");
+      ws.close();
+    };
+
+    ws.onmessage = function (evt:Object):void
+    {
+      var msg:String = evt.data;
+      log("Received "+msg+" from "+url);
+    };
+    ws.onclose = function():void
+    {
+      // websocket is closed.
+      log("disconnected");
+    };
   }
 
   private static function log(message:String) :void {
     window.console.log(message);
+  }
+
+
+
+  private static function dump(obj:Object, depth:int=0) : String {
+
+    if( depth > 2 ) {
+      return "";
+    }
+
+    var indent:String = "";
+    for( var i:int = 0; i<depth; i++ ) {
+      indent += " ";
+    }
+
+    var result:String = "";
+    for( var key:String in obj ) {
+      if( obj.hasOwnProperty(key) ) {
+
+        var value:* = obj[key];
+        if( typeof(value) === "object" ) {
+          result += "\n"+indent+key+"="+dump(value, depth+1);
+        }
+        else {
+          result += "\n"+indent+key+"="+value;
+        }
+      }
+    }
+
+    return result;
   }
 }
 }
