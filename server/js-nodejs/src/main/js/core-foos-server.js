@@ -13,7 +13,7 @@ var getUserByName = function (collection, userName) {
   return mongo.find(collection, {name:userName}, {});
 };
 
-var initialize = function() {
+var initialize = function () {
   console.log("initialize server");
   client.open(function (err, client) {
     console.log("Open");
@@ -23,7 +23,7 @@ var initialize = function() {
     users = new mongodb.Collection(client, usersCollection);
     users.ensureIndex({name:1}, {unique:true}, {});
     matches = new mongodb.Collection(client, matchesCollection);
-    // generateTestData(client);
+    //generateTestData(client);
     console.log("Really open");
   });
   console.log("ready for action");
@@ -35,11 +35,15 @@ var generateTestData = function (client) {
   requestPlay('Moritz');
   requestPlay('Kai');
   requestPlay('xyz');
+  requestMatch({});
 
   // cancelPlay('xyz');
   // getListOfUsers();
 
   matchPlayers();
+  getNumberOfMatches(function(count) {
+    console.log("Count:", count);
+  });
 };
 
 var getListOfUsers = function (callback) {
@@ -54,7 +58,7 @@ var getListOfUsers = function (callback) {
 };
 
 var requestPlay = function (userName) {
-  console.log("Got users: " + users + ", add " +userName);
+  console.log("Got users: " + users + ", add " + userName);
   mongo.insert(users, {name:userName});
 };
 
@@ -73,9 +77,13 @@ var requestMatch = function (users) {
   mongo.insert(matches, {});
 };
 
-var endMatch = function(id) { //by id??
+var endMatch = function (id) { //by id??
   mongo.remove(matches, {_id:id})
 };
+
+var getNumberOfMatches = function (callback) {
+  mongo.count(matches, callback);
+}
 
 exports.getListOfUsers = getListOfUsers;
 exports.requestPlay = requestPlay;
@@ -83,3 +91,4 @@ exports.cancelPlay = cancelPlay;
 exports.requestMatch = requestMatch;
 exports.endMatch = endMatch;
 exports.initialize = initialize;
+exports.getNumberOfMatches = getNumberOfMatches;

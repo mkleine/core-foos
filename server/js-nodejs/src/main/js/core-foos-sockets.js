@@ -8,7 +8,7 @@ repository.initialize();
 
 console.log("Ready to listen");
 
-var httpServer = http.createServer(function(request, response) {
+var httpServer = http.createServer(function (request, response) {
   request.addListener('end', function () {
     clientFiles.serve(request, response);
   });
@@ -16,7 +16,7 @@ var httpServer = http.createServer(function(request, response) {
 httpServer.listen(2000);
 
 var webSocket = socketIO.listen(httpServer);
-webSocket.on('connection', function(client) {
+webSocket.on('connection', function (client) {
   client.emit("message", 'Welcome to Core Foo Kicker App');
   client.on('register', function(data) {
 
@@ -31,7 +31,7 @@ webSocket.on('connection', function(client) {
     return;
   });
 
-  client.on('leave', function(user) {
+  client.on('leave', function (user) {
     repository.cancelPlay(user);
     client.emit("message", user + ' has left the building.');
     client.broadcast.emit("leave", user);
@@ -47,9 +47,22 @@ webSocket.on('connection', function(client) {
 
 function updateUserList(client) {
 
-  repository.getListOfUsers(function(users){
-    client.broadcast.emit("list", users);
-    client.emit("list", users);
-  }
+  repository.getListOfUsers(function (users) {
+            client.broadcast.emit("list", users);
+            client.emit("list", users);
+          }
+  );
+}
+
+function getTableState(client) {
+  repository.getNumberOfMatches(function (count) {
+            if (count == 0) {
+              client.broadcast.emit("tableState", true);
+              client.emit("tableState", true);
+            } else {
+              client.broadcast.emit("tableState", false);
+              client.emit("tableState", false);
+            }
+          }
   );
 }

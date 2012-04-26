@@ -1,4 +1,3 @@
-
 var remove = function (collection, expr) {
   collection.remove(expr);
 };
@@ -23,7 +22,15 @@ var insert = function (collection, data) {
           });
 };
 
+var count = function (collection, callback) {
+  return collection.count({}, function (err, count) {
+    console.log("Number of matches: " + count);
+    callback(count);
+  });
+}
+
 exports.remove = remove;
 exports.update = update;
 exports.find = find;
 exports.insert = insert;
+exports.count = count;
