@@ -15,7 +15,6 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>jangaroo-nodejs</module>
     <module>js-nodejs</module>
   </modules>
 
