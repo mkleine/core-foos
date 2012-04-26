@@ -94,6 +94,17 @@ webSocket.on('connection', function (client) {
 
     return;
   });
+  client.on('administration',
+          function(cmd){
+            console.log("performing administrative command: "+ cmd);
+            repository.administration(cmd,
+                    function() {
+                      client.emit('administration',cmd);
+                    }
+            )
+          }
+  );
+
 });
 
 function getTableState(client) {

@@ -197,3 +197,12 @@ exports.initialize = initialize;
 exports.getNumberOfMatches = getNumberOfMatches;
 exports.getNumberOfActiveMatches = getNumberOfActiveMatches;
 exports.getListOfMatches = getListOfMatches;
+exports.administration = function(cmd,callback) {
+   if(cmd == "dropUsers"){
+     mongo.remove(users,{});
+   } else if(cmd == "dropMatches") {
+     mongo.remove(matches,{});
+   } else {
+     console.warn("unknown cmd: "+ cmd);
+   }
+};

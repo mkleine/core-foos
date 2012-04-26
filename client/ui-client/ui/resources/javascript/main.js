@@ -22,6 +22,10 @@ $(function () {
 
   $("#statusView").text(statusFreeText);
   $("#bookingButton").val(buttonAddBookingText);
+  $("#dropUsers").text('dropUsers');
+  $("#dropUsers").click(dropUsers);
+  $("#dropMatches").text('dropMatches');
+  $("#dropMatches").click(dropMatches);
   $("#queueSizeValue").text(QUEUE_SIZE);
 //  initStatusView(QUEUE_SIZE);
   refreshQueueSize();
@@ -31,7 +35,7 @@ $(function () {
 function initServerConnection() {
   webSocket = io.connect('http://co5pcdv03.coremedia.com:2000');
   webSocket.on('connect', function () {
-    alert('Connected to the server.');
+    console.info('Connected to the server.');
   });
 
   webSocket.on('table_state', function (isTableFree) {
@@ -39,9 +43,12 @@ function initServerConnection() {
   });
 
   webSocket.on('start_match', function(data) {
-    alert("Start match with " + JSON.stringify(data));
+    console.info("Start match with " + JSON.stringify(data));
   });
 
+  webSocket.on('administration', function (cmd) {
+    console.info("completed administration cmd: " + cmd);
+  });
 }
 
 function initUi() {
@@ -178,4 +185,12 @@ function removeFromQueue() {
 
 function checkTableState() {
   webSocket.emit("check_table_state");
+}
+
+function dropUsers() {
+  webSocket.emit("administration","dropUsers");
+}
+
+function dropMatches() {
+  webSocket.emit("administration","dropMatches");
 }

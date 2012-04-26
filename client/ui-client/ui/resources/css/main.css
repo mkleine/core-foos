@@ -204,3 +204,7 @@ body {
   background: url(../images/sport_soccer_active.png);
   cursor: pointer;
 }
+
+#dropUsers, #dropMatches {
+  cursor: pointer;
+}
