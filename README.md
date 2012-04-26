@@ -65,7 +65,7 @@ Some notes:
     <td>-</td>
     <td>-</td>
     <td>
-      <b>Note:</b> Maybe we implement this step after some business logic has been coded.
+      <b>Note:</b> This step will be implemented <i>after a substantial amount of business logic has been coded</i>.
     </td>
   </tr>
   <tr>
@@ -82,9 +82,7 @@ Some notes:
     <td>
       <code>table_state</code>
     </td>
-    <td>
-      <b>Note:</b> Maybe we implement this step after some business logic has been coded.
-    </td>
+    <td>-</td>
   </tr>
 </table>
 
