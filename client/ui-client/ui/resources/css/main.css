@@ -106,7 +106,6 @@ body {
 }
 
 #queueContainer .queueEntry {
-  display: inline-block;
   background-color: #f9f9f9;
   margin: 10px auto;
   padding: 8px 10px;
@@ -153,6 +152,7 @@ body {
 
 #queueContainer .queuePlayerContainer {
   display: inline-block;
+  margin-right: 20px;
 }
 
 #queueContainer .queuePlayerImage {
@@ -160,11 +160,17 @@ body {
   background: url(../images/player-inactive.png);
   width: 32px;
   height: 30px;
+  cursor: pointer;
 }
 
 #queueContainer .queuePlayerImage.active {
-  background: url(../images/player-active.png);
+  background: url(../images/player-active.png) !important;
 }
+
+#queueContainer .queuePlayerImage.hover {
+  background: url(../images/player-hover.png);
+}
+
 
 #queueContainer .queuePlayerName {
   display: inline-block;
@@ -181,7 +187,20 @@ body {
   border: 1px solid #e1e1e1;
   background-color: #fcfcfc;
   height: 22px;
-  width: 150px;
+  width: 120px;
   padding: 3px;
 
+}
+
+#queueContainer .bookingButton {
+  display: inline-block;
+  background: url(../images/sport_soccer_inactive.png);
+  width: 32px;
+  height: 32px;
+  cursor: default;
+}
+
+#queueContainer .bookingButton.active {
+  background: url(../images/sport_soccer_active.png);
+  cursor: pointer;
 }
