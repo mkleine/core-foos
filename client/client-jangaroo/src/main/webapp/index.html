@@ -1,9 +1,19 @@
 <html>
 
-
 <head>
   <title>CoreFoos Jangaroo Client</title>
-  <script type="text/javascript" src="http://localhost:2000/socket.io/socket.io.js"></script>
+  <script type="text/javascript" src="http://co5pcdv03.coremedia.com:2000/socket.io/socket.io.js"></script>
+  <script type="text/javascript">
+    // fix location href if opened from src (e.g. when using IDEA "Open in Browser") :
+    const href = window.location.href;
+    if(href.indexOf("file") === 0) {
+      var startIndex = href.indexOf("src/main/webapp");
+      if(startIndex > 0){
+        console.info("rewriting location.href ...");
+        window.location.href = href.replace('src/main/webapp','target/client-jangaroo-0.0.1-SNAPSHOT');
+      }
+    }
+  </script>
   <script type="text/javascript" src="joo/jangaroo-application-all.js"></script>
   <style type="text/css">
 
@@ -27,7 +37,7 @@
   </style>
 </head>
 
-<body onload="joo.classLoader.run('com.coremedia.core_foos.CoreFoos', 'ws://localhost:2000', 'status', 'join', 'leave');">
+<body onload="joo.classLoader.run('com.coremedia.core_foos.CoreFoos', 'ws://co5pcdv03.coremedia.com:2000', 'status', 'join', 'leave');">
 
 <div id="status" class="status_unknown">Status</div>
 
