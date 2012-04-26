@@ -1,4 +1,6 @@
 package com.coremedia.core_foos {
+import io.Socket;
+import io.connect;
 
 /**
  * PKA's test code
@@ -14,7 +16,6 @@ public class CoreFoosPKA {
   }
 
 
-
   public function CoreFoosPKA(url:String) {
     this.url = url;
     log("Using url "+url);
@@ -24,21 +25,20 @@ public class CoreFoosPKA {
 
   private function checkTableStateSocketIO() : void {
 
-    var ws:Object = window.io.connect(url);
+    var ws:Socket = connect(url);
     ws.on('connect', function():void
     {
       log("connected to "+url+" using socket.io");
 
-      var tableState:Object = ws.emit(REQUEST_CHECKTABLESTATE);
-      log(REQUEST_CHECKTABLESTATE+": "+dump(tableState));
-
-      log("disconnecting ...");
-      ws.disconnect();
+      ws.emit(REQUEST_CHECKTABLESTATE);
     });
 
 
-    ws.on('message', function():void {
-      log("")
+    ws.on(RESPONSE_CHECKTABLESTATE, function(obj:Object):void {
+      log("Received "+RESPONSE_CHECKTABLESTATE+": "+dump(obj));
+
+      log("disconnecting ...");
+      ws.disconnect();
     });
 
     ws.on('disconnect', function():void {
@@ -47,34 +47,34 @@ public class CoreFoosPKA {
 
   }
 
-  private function checkTableStateWebsocket() : void {
-
-
-    var ws:Object = new window.WebSocket(url);
-    ws.onopen = function():void
-    {
-      log("connected to "+url+" using websocket");
-      var tableState:Object = ws.send(REQUEST_CHECKTABLESTATE);
-      log(REQUEST_CHECKTABLESTATE+": "+tableState);
-
-      log("disconnecting ...");
-      ws.close();
-    };
-
-    ws.onmessage = function (evt:Object):void
-    {
-      var msg:String = evt.data;
-      log("Received "+msg+" from "+url);
-    };
-
-    ws.onclose = function():void
-    {
-      // websocket is closed.
-      log("disconnected");
-    };
-
-    log("Created WebSocket: "+dump(ws));
-  }
+//  private function checkTableStateWebsocket() : void {
+//
+//
+//    var ws:Object = new window.WebSocket(url);
+//    ws.onopen = function():void
+//    {
+//      log("connected to "+url+" using websocket");
+//      var tableState:Object = ws.send(REQUEST_CHECKTABLESTATE);
+//      log(REQUEST_CHECKTABLESTATE+": "+tableState);
+//
+//      log("disconnecting ...");
+//      ws.close();
+//    };
+//
+//    ws.onmessage = function (evt:Object):void
+//    {
+//      var msg:String = evt.data;
+//      log("Received "+msg+" from "+url);
+//    };
+//
+//    ws.onclose = function():void
+//    {
+//      // websocket is closed.
+//      log("disconnected");
+//    };
+//
+//    log("Created WebSocket: "+dump(ws));
+//  }
 
   private static function log(message:String) :void {
     window.console.log(message);
