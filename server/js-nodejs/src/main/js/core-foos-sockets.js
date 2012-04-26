@@ -34,6 +34,11 @@ webSocket.on('connection', function(client) {
     client.emit("leave", user);
     return;
   });
+
+  client.on('check_table_state', function() {
+    client.emit("table_state", {occupied: true});
+    return;
+  });
 });
 
 function updateUserList(client) {

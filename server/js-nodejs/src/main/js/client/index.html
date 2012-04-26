@@ -17,6 +17,10 @@
     <button id="leaveButton">Leave</button>
   </p>
 
+  <p>
+    <button id="checkStateButton">Check State</button>
+  </p>
+
 </div>
 <p>Messages</p>
 <div>
@@ -48,6 +52,11 @@
       $('#players').append('<li>' + user + '</li>');
     });
 
+    webSocket.on('table_state', function(data) {
+      // $('#messages').append('<li>Is occupied?</li>');
+      $('#messages').append('<li>Is occupied=' + data.occupied + '</li>');
+    });
+
     webSocket.on('leave', function(user) {
       $('#players').append('<li>no more ' + user + '</li>');
     });
@@ -57,8 +66,9 @@
     });
 
     webSocket.on('list', function(users) {
-      $('#players').remove();
       $('#players').append('<li>Update</li>');
+      // $('#players').childdren().remove();
+      // $('#messages').append('<li>Update list</li>');
     });
 
     $('#enterButton').bind('click', function() {
@@ -70,6 +80,9 @@
       var user = $('#user').val();
       webSocket.emit("leave", user);
       $('#user').val('');
+    });
+    $('#checkStateButton').bind('click', function() {
+      webSocket.emit("check_table_state");
     });
 
   });
