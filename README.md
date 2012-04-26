@@ -231,6 +231,41 @@ Some notes:
   </tr>
 </table>
 
+
+# Websocket API
+<table>
+  <tr>
+    <th>Event Name</th>
+    <th>Where</th>
+    <th>Data</th>
+  </tr>
+  <tr>
+    <td>register</td>
+    <td>Server</td>
+    <td>[{name: String}]</td>
+  </tr>
+  <tr>
+    <td>check_table_state</td>
+    <td>Server</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>table_state</td>
+    <td>Client</td>
+    <td>{occupied: boolean}</td>
+  </tr>
+  <tr>
+    <td>start_match</td>
+    <td>Client</td>
+    <td>Match</td>
+  </tr>
+  <tr>
+    <td>end_match</td>
+    <td>Server</td>
+    <td>{matchId:String}</td>
+  </tr>
+</table>
+
 # Additional Features
 
 * Web UI fits device's viewport resolution (CSS Media Queries)
