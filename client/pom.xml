@@ -11,6 +11,9 @@
 
   <groupId>com.coremedia.hackathon</groupId>
   <artifactId>core-foos-client</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+
+  <modules>
+    <module>client-jangaroo</module>
+  </modules>
 
 </project>
