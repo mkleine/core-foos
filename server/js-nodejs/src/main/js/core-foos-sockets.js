@@ -66,7 +66,9 @@ webSocket.on('connection', function (client) {
     client.on('end_match', function () {
         repository.endMatch(function (match) {
             if (match) {
-                client.broadcast.emit("start_match", match);
+              client.broadcast.emit("end_match", match);
+              client.broadcast.emit("start_match", match);
+                client.emit("end_match", match);
                 client.emit("start_match", match);
             }
         });

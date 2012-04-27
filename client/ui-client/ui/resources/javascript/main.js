@@ -2,7 +2,7 @@
  * Main JS file of core-foos webapp.
  */
 
-const url = 'http://co5pcdv03.coremedia.com:2000';
+const url = 'http://${server.host}:${server.port}';
 
 var statusFreeText = "frei";
 var statusOccupiedText = "besetzt";
@@ -60,7 +60,7 @@ function initServerConnection() {
     }
   });
 
-  webSocket.on('end_match', function () {
+  webSocket.on('end_match', function (data) {
     $("#currentMatchContainer").empty();
 //    console.log("End match with " + JSON.stringify(data));
     checkTableState();
