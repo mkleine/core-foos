@@ -60,8 +60,9 @@ function initServerConnection() {
     }
   });
 
-  webSocket.on('end_match', function (data) {
-    console.log("End match with " + JSON.stringify(data));
+  webSocket.on('end_match', function () {
+    $("#currentMatchContainer").empty();
+//    console.log("End match with " + JSON.stringify(data));
     checkTableState();
   });
 
@@ -81,7 +82,7 @@ function initServerConnection() {
     receiveCurrentMatch();
     if(match && match.state) {
       currentMatchId = match._id;
-      addCurrentMatchQueueEntry(0,[match.player1, match.player2, match.player3, match.player4], match.date);
+      addCurrentMatchQueueEntry(0,[match.player1, match.player2, match.player3, match.player4], match.requestDate);
     }
   });
 }
@@ -90,7 +91,7 @@ function showQueueList(matches) {
 
   $("#queueContainer").empty();
   matches.forEach(function (item) {
-    addReadOnlyQueueEntry(testIndex, [item.player1, item.player2, item.player3, item.player4], item.date);
+    addReadOnlyQueueEntry(testIndex, [item.player1, item.player2, item.player3, item.player4], item.requestDate);
     testIndex++;
   });
 }
@@ -339,5 +340,5 @@ function dropMatches() {
 }
 
 function endCurrentMatch(){
-  webSocket.emit("end_match", {matchId:currentMatchId});
+  webSocket.emit("end_match");
 }
