@@ -16,7 +16,7 @@
 
   <modules>
     <module>client-jangaroo</module>
-    <module>client-android</module>
+    <!--<module>client-android</module>-->
   </modules>
 
 </project>
