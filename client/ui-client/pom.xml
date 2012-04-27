@@ -29,6 +29,13 @@
                 <exclude>**/*.png</exclude>
               </excludes>
             </resource>
+            <resource>
+              <directory>ui</directory>
+              <filtering>false</filtering>
+              <includes>
+                <include>**/*.png</include>
+              </includes>
+            </resource>
           </webResources>
         </configuration>
       </plugin>
