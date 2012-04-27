@@ -199,7 +199,6 @@ body {
   height: 22px;
   width: 80px;
   padding: 3px;
-
 }
 
 
@@ -233,9 +232,9 @@ body {
 }
 
 #currentMatchContainer .queueEntry {
-  background-color: #a0c4ee;
+  border: 3px solid #b3d0f1;
 }
 
 #currentMatchContainer .queuePlayerName input {
-  background-color: #b3d0f1;
+  background-color: #F9F9F9;
 }
