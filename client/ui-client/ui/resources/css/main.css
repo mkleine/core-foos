@@ -225,3 +225,11 @@ body {
   font-size: 11px;
   margin-top: -15px;
 }
+
+#currentMatchContainer .queueEntry {
+  background-color: #a0c4ee;
+}
+
+#currentMatchContainer .queuePlayerName input {
+  background-color: #b3d0f1;
+}
