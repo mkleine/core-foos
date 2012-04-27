@@ -340,5 +340,5 @@ function dropMatches() {
 }
 
 function endCurrentMatch(){
-  webSocket.emit("end_match");
+  webSocket.emit("end_match", "");
 }
