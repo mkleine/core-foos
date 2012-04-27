@@ -9,6 +9,11 @@
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
+  <properties>
+    <server.host>co5pcdv03.coremedia.com</server.host>
+    <server.port>80</server.port>
+  </properties>
+
   <modules>
     <module>client</module>
     <module>server</module>

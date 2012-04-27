@@ -15,8 +15,6 @@
 
   <properties>
     <jangaroo.version>0.9.14</jangaroo.version>
-    <server.host>co5pcdv03.coremedia.com</server.host>
-    <server.port>2000</server.port>
   </properties>
 
   <dependencies>

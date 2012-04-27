@@ -21,7 +21,16 @@
         <version>2.2</version>
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
-          <warSourceDirectory>ui</warSourceDirectory>
+          <webResources>
+            <resource>
+              <directory>ui</directory>
+              <filtering>true</filtering>
+              <includes>
+                <include>**/*.js</include>
+                <include>**/*.html</include>
+              </includes>
+            </resource>
+          </webResources>
         </configuration>
       </plugin>
     </plugins>
