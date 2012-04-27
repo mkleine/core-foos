@@ -14,7 +14,7 @@ try {
 console.log("config:");
 console.dir(config);
 
-var clientFiles = new static.Server(config.dir || './client');
+var clientFiles = new static.Server(config.dir ? config.dir : './client');
 repository.initialize(config);
 
 console.log("Ready to listen");
@@ -24,7 +24,7 @@ var httpServer = http.createServer(function (request, response) {
         clientFiles.serve(request, response);
     });
 });
-httpServer.listen(config.port || 2000);
+httpServer.listen(config.port ? config.port : 2000);
 
 var webSocket = socketIO.listen(httpServer);
 

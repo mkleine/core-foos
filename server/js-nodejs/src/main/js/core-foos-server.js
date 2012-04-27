@@ -81,6 +81,7 @@ var generateTestData = function (client) {
   });
 
   startMatch(function () {
+    console.log("starting match");
     currentMatch(function (match) {
       if (match) {
         console.log("end match..." + match._id)
