@@ -124,15 +124,20 @@ var getNumberOfActiveMatches = function (callback) {
 var requestPlay = function (newUsers, callback) {
   console.log("Got users: " + newUsers + ", add " + newUsers.length + " users");
   if (newUsers.length == 4) {
+    console.log("new users = 4");
     requestMatch(newUsers[0].name, newUsers[1].name, newUsers[2].name, newUsers[3].name, callback);
   } else {
-    for (i = 0; i < newUsers.length; i++) {
+    for (i = 0; i < (newUsers.length - 1); i++) {
       console.log("Add user: " + newUsers[i].name);
       if (newUsers[i].name && newUsers[i].name.length > 0) {
         mongo.upsert(users, {name:newUsers[i].name}, {state:USER_STATE_WAITING, date:new Date()}, function () {
-          matchPlayers(callback);
         });
       }
+    }
+    if (newUsers[newUsers.length - 1].name && newUsers[newUsers.length - 1].name.length > 0) {
+      mongo.upsert(users, {name:newUsers[newUsers.length - 1].name}, {state:USER_STATE_WAITING, date:new Date()}, function () {
+          matchPlayers(callback);
+      });
     }
   }
 };
