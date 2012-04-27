@@ -7,8 +7,6 @@ const url = 'http://${server.host}:${server.port}';
 var statusFreeText = "frei";
 var statusOccupiedText = "besetzt";
 var statusWaitingText = "wartend";
-var buttonRemoveBookingText = "buchung zurückziehen";
-var buttonAddBookingText = "buchung";
 
 var occupied = false;
 var queueSize = 0;
@@ -19,7 +17,6 @@ var currentMatchId;
 var idleTimeInMinutes = 0;
 window.setInterval(
         function(){
-          console.log('updating timer');
           $("#timeValue").text(parseInt($("#timeValue").text(),10) + 1)
         },
         1000*60
@@ -29,9 +26,9 @@ window.setInterval(
 $(function () {
   initServerConnection();
   checkTableState();
+  webSocket.emit('last_finished_match'); // trigger initialization of timer
 
   $("#statusView").text(statusFreeText);
-  $("#bookingButton").val(buttonAddBookingText);
   $("#queueSizeValue").text(queueSize);
   $("#dropUsers").text('dropUsers');
   $("#dropUsers").click(dropUsers);
@@ -57,8 +54,6 @@ function initServerConnection() {
             updateTimer(endDate);
           }
   );
-
-  webSocket.emit('last_finished_match'); // trigger initialization of timer
 
   webSocket.on('current_match',
     receiveCurrentMatch
@@ -303,7 +298,6 @@ function toggleBooking(bookFlag, players) {
       $("#statusView").attr('class', "statusFree");
     }
 
-    $("#bookingButton").val(buttonAddBookingText);
   }
 }
 
