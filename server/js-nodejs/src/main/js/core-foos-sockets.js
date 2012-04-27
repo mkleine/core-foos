@@ -64,7 +64,12 @@ webSocket.on('connection', function (client) {
     getCurrentMatch(client);
   });
 
-    client.on('end_match', function (match) {
+
+  client.on('number_of_played_matches', function() {
+    getNumberOfPlayedMatches(client);
+  });
+
+  client.on('end_match', function (match) {
         repository.endMatch(function (match) {
             if (match) {
               client.broadcast.emit("end_match", match);

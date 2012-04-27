@@ -54,11 +54,18 @@
   <p>
     <button id="currentMatchButton">Get current match</button>
   </p>
+<<<<<<< HEAD
 
   <p>
     <button id="lastFinishedMatch">Get last finished match</button>
   </p>
 
+=======
+  
+  <p>
+    <button id="numberOfPlayedMatchesButton">Number of played matches</button>
+  </p>
+>>>>>>> Display # played matches
 </div>
 <p>Messages</p>
 
@@ -78,6 +85,11 @@
   <ul id="listOfUsers">
   </ul>
 </div>
+
+<p>
+  <label for="numberOfPlayedMatches">Number of played matches: </label>
+  <span id="numberOfPlayedMatches"/>
+</p>
 
 
 <script type="text/javascript" src="http://localhost:2000/socket.io/socket.io.js"></script>
@@ -135,6 +147,10 @@
       if(match) {
         $('#currentMatch').val(match._id);
       }
+    });
+
+    webSocket.on('number_of_played_matches', function (number) {
+        $('#numberOfPlayedMatches').text(number);
     });
 
     webSocket.on('list_of_users', function (users) {
@@ -202,7 +218,9 @@
     $('#lastFinishedMatch').bind('click', function () {
       webSocket.emit("last_finished_match");
     });
-
+    $('#numberOfPlayedMatchesButton').bind('click', function () {
+      webSocket.emit("number_of_played_matches");
+    });
   });
 </script>
 </body>

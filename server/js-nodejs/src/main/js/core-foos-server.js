@@ -40,7 +40,7 @@ var initialize = function (config) {
     counters = new mongodb.Collection(client, countersCollection);
     mongo.upsert(counters, {name:COUNTER_NAME_NUM_MATCHES}, {value:0}, function () {
     });
-    generateTestData(client);
+    //generateTestData(client);
     console.log("Really open");
   });
   console.log("ready for action");
@@ -225,6 +225,7 @@ var currentMatch = function (callback) {
 var getNumberOfPlayedMatches = function (callback) {
   mongo.find(counters, {name:COUNTER_NAME_NUM_MATCHES}, {}).toArray(function (err, result) {
     if (result && result.length > 0) {
+      console.log("# played matches: " + result[0].value)
       callback(result[0].value);
     } else {
       callback();
