@@ -75,12 +75,12 @@
 </div>
 
 
-<script type="text/javascript" src="http://co5pcdv03.coremedia.com:2000/socket.io/socket.io.js"></script>
+<script type="text/javascript" src="http://co5pcdv03.coremedia.com:80/socket.io/socket.io.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.5.2.js"></script>
 
 <script type="text/javascript">
   $(document).ready(function () {
-    var webSocket = io.connect('http://co5pcdv03.coremedia.com:2000');
+    var webSocket = io.connect('http://co5pcdv03.coremedia.com:80');
 
     webSocket.on('connect', function () {
       $('#messages').append('<li>Connected to the server.</li>');
