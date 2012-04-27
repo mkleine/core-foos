@@ -19,6 +19,8 @@
     <android.sdk.path>C:/Progra~2/Android/android-sdk</android.sdk.path>
     <!--<jangaroo.version>0.9.14</jangaroo.version>-->
     <assets.dir>${project.build.directory}/assets</assets.dir>
+    <client.name>client-jquery</client.name><!-- name of the HTML client webapp to be used included.
+    either "client-jquery" or "client-jangaroo"  -->
   </properties>
 
 
@@ -32,7 +34,7 @@
 
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>client-jangaroo</artifactId>
+      <artifactId>${client.name}</artifactId>
       <version>${project.version}</version>
       <type>war</type>
     </dependency>
@@ -71,7 +73,7 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>${project.groupId}</groupId>
-                  <artifactId>client-jangaroo</artifactId>
+                  <artifactId>${client.name}</artifactId>
                   <version>${project.version}</version>
                   <type>war</type>
                 </artifactItem>
