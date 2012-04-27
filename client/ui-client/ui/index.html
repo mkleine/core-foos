@@ -39,13 +39,14 @@
   </div>
 </div>
 
-<div id="queueContainer">
-  <div class="queueEntry">
+
+<div id="queueCreationContainer">
+  <div id="queueCreationEntry" class="queueEntry">
     <div class="queueAddEntryButton"></div>
     <div class="queueAddEntryText">Neues Match erstellen</div>
   </div>
 
-  <div id="queueEntry_1" class="queueEntry">
+  <div id="queueEntry_creation" class="queueEntry invisible">
     <div class="queueRemoveEntryButton"></div>
     <div class="queuePlayerContainer 1Player">
       <div class="queuePlayerImage"></div>
@@ -64,11 +65,16 @@
       <div class="queuePlayerName"><input type="text"></div>
     </div>
     <div class="bookingButton"></div>
+
+  </div>
+<!--<hr>-->
+  <div id="queueContainer">
+
   </div>
 
 
 </div>
-<button id="dropUsers"></button>
-<button id="dropMatches"></button>
+<div id="dropUsers"></div>
+<div id="dropMatches"></div>
 </body>
 </html>

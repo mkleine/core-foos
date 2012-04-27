@@ -26,7 +26,7 @@ $(function () {
   $("#dropUsers").click(dropUsers);
   $("#dropMatches").text('dropMatches');
   $("#dropMatches").click(dropMatches);
-  $("#statusCounter").css('display','none');
+  $("#statusCounter").css('display', 'none');
 //  initStatusView(QUEUE_SIZE);
   refreshQueueSize();
   initUi();
@@ -38,9 +38,12 @@ function initServerConnection() {
     console.log('Connected to: ' + url);
   });
 
-  webSocket.on('message',function(msg){
-    console.log(msg);
-  });
+  webSocket.on('receive_time',
+          function (data) {
+            console.log("Receiving time: " + JSON.stringify(data));
+            $("#statusCounter").css('display', 'inline-block');
+          }
+  );
 
   webSocket.on('current_match',
     receiveCurrentMatch
@@ -62,71 +65,83 @@ function initServerConnection() {
   });
 
   webSocket.on('waiting_matches', function (data) {
+    testIndex = 2;
     setQueueSize(data.length);
     showQueueList(data);
     initStatusView(getQueueSize(), getOccupied());
   });
 
   webSocket.on('registration_complete', function (data) {
-    console.log("registering match "+data);
+    webSocket.emit("waiting_matches");
+    console.log("registering match " + JSON.stringify(data));
   });
 
 }
 
 
-function showQueueList(matches){
+function showQueueList(matches) {
 
-  matches.forEach(function(item){
-    addReadOnlyQueueEntry(testIndex);
+  $("#queueContainer").empty();
+  matches.forEach(function (item) {
+    addReadOnlyQueueEntry(testIndex, [item.player1, item.player2, item.player3, item.player4], item.date);
     testIndex++;
   });
 }
 
-function addReadOnlyQueueEntry(number){
-  $('<div id="queueEntry_'+number+'" class="queueEntry"></div>').appendTo('#queueContainer');
-  $('<div class="queueRemoveEntryButton"></div>').appendTo('#queueEntry_'+number);
+function addReadOnlyQueueEntry(number, playerArray, createDate) {
+  $('<div id="queueEntry_' + number + '" class="queueEntry"></div>').appendTo('#queueContainer');
+  $('<div class="queueRemoveEntryButton"></div>').appendTo('#queueEntry_' + number);
 
-  addPlayerContainer(1, '#queueEntry_'+number);
-  addPlayerContainer(2, '#queueEntry_'+number);
-  addPlayerContainer(3, '#queueEntry_'+number);
-  addPlayerContainer(4, '#queueEntry_'+number);
+  addPlayerContainer(1, '#queueEntry_' + number, playerArray[0]);
+  addPlayerContainer(2, '#queueEntry_' + number, playerArray[1]);
+  addPlayerContainer(3, '#queueEntry_' + number, playerArray[2]);
+  addPlayerContainer(4, '#queueEntry_' + number, playerArray[3]);
+
+  $('<div class="queueDateContainer">'+createDate+'</div>').appendTo('#queueEntry_' + number);
 }
 
-function addPlayerContainer(playerNumber, rootQueueEntryContainerId){
+function addPlayerContainer(playerNumber, rootQueueEntryContainerId, playerName) {
 
-  $('<div class="queuePlayerContainer '+playerNumber+'Player"></div>').appendTo(rootQueueEntryContainerId);
-  $('<div class="queuePlayerImage active"></div>').appendTo(rootQueueEntryContainerId+' .queuePlayerContainer.'+playerNumber+'Player');
-  $('<div class="queuePlayerName"><input type="text" disabled></div>').appendTo(rootQueueEntryContainerId+' .queuePlayerContainer.'+playerNumber+'Player');
+  $('<div class="queuePlayerContainer ' + playerNumber + 'Player"></div>').appendTo(rootQueueEntryContainerId);
+  $('<div class="queuePlayerImage active"></div>').appendTo(rootQueueEntryContainerId + ' .queuePlayerContainer.' + playerNumber + 'Player');
+  $('<div class="queuePlayerName"><input type="text" value="' + playerName + '" disabled></div>').appendTo(rootQueueEntryContainerId + ' .queuePlayerContainer.' + playerNumber + 'Player');
 
 }
 
 function initUi() {
-//  addReadOnlyQueueEntry(3);
-  var queueAddEntryButton = $("#queueContainer .queueAddEntryButton");
-  var queueRemoveEntryButton = $("#queueContainer .queueRemoveEntryButton");
-  var queuePlayer1Image = $("#queueEntry_1 .queuePlayerContainer.1Player .queuePlayerImage");
-  var queuePlayer2Image = $("#queueEntry_1 .queuePlayerContainer.2Player .queuePlayerImage");
-  var queuePlayer3Image = $("#queueEntry_1 .queuePlayerContainer.3Player .queuePlayerImage");
-  var queuePlayer4Image = $("#queueEntry_1 .queuePlayerContainer.4Player .queuePlayerImage");
+  var queueAddEntryButton = $("#queueCreationContainer .queueAddEntryButton");
+//  var queueRemoveEntryButton = $("#queueContainer .queueRemoveEntryButton");
+  var queuePlayer1Image = $("#queueEntry_creation .queuePlayerContainer.1Player .queuePlayerImage");
+  var queuePlayer2Image = $("#queueEntry_creation .queuePlayerContainer.2Player .queuePlayerImage");
+  var queuePlayer3Image = $("#queueEntry_creation .queuePlayerContainer.3Player .queuePlayerImage");
+  var queuePlayer4Image = $("#queueEntry_creation .queuePlayerContainer.4Player .queuePlayerImage");
 
 
-  var queuePlayer1Name = $("#queueEntry_1 .queuePlayerContainer.1Player .queuePlayerName input");
-  var queuePlayer2Name = $("#queueEntry_1 .queuePlayerContainer.2Player .queuePlayerName input");
-  var queuePlayer3Name = $("#queueEntry_1 .queuePlayerContainer.3Player .queuePlayerName input");
-  var queuePlayer4Name = $("#queueEntry_1 .queuePlayerContainer.4Player .queuePlayerName input");
+  var queuePlayer1Name = $("#queueEntry_creation .queuePlayerContainer.1Player .queuePlayerName input");
+  var queuePlayer2Name = $("#queueEntry_creation .queuePlayerContainer.2Player .queuePlayerName input");
+  var queuePlayer3Name = $("#queueEntry_creation .queuePlayerContainer.3Player .queuePlayerName input");
+  var queuePlayer4Name = $("#queueEntry_creation .queuePlayerContainer.4Player .queuePlayerName input");
 
 
-  var queueBookingButton = $("#queueEntry_1 .bookingButton");
+  var queueBookingButton = $("#queueEntry_creation .bookingButton");
 
   // toggle buttons hover
   queueAddEntryButton.hover(function () {
             queueAddEntryButton.toggleClass("active");
           }
   );
-  queueRemoveEntryButton.hover(function () {
-            queueRemoveEntryButton.toggleClass("active");
-          }
-  );
+
+  queueAddEntryButton.click(function () {
+    $("#queueCreationEntry").attr("class", "queueEntry invisible");
+    $("#queueEntry_creation").attr("class", "queueEntry");
+  });
+
+  /*
+   queueRemoveEntryButton.hover(function () {
+   queueRemoveEntryButton.toggleClass("active");
+   }
+   );
+   */
 
   togglePlayerImage(queuePlayer1Image, queuePlayer1Name);
   togglePlayerImage(queuePlayer2Image, queuePlayer2Name);
@@ -149,6 +164,18 @@ function initUi() {
       }
     }
     toggleBooking(true, filteredPlayers);
+
+    $("#queueCreationEntry").attr("class", "queueEntry ");
+    $("#queueEntry_creation").attr("class", "queueEntry invisible");
+    queuePlayer1Name.val("");
+    queuePlayer2Name.val("");
+    queuePlayer3Name.val("");
+    queuePlayer4Name.val("");
+
+    queuePlayer1Image.attr("class", "queuePlayerImage");
+    queuePlayer2Image.attr("class", "queuePlayerImage");
+    queuePlayer3Image.attr("class", "queuePlayerImage");
+    queuePlayer4Image.attr("class", "queuePlayerImage");
   });
 }
 
@@ -180,12 +207,12 @@ function togglePlayerImage(playerImageContainer, playerInputContainer) {
 
 function checkPlayerText() {
 
-  var queuePlayer1Name = $("#queueEntry_1 .queuePlayerContainer.1Player .queuePlayerName input");
-  var queuePlayer2Name = $("#queueEntry_1 .queuePlayerContainer.2Player .queuePlayerName input");
-  var queuePlayer3Name = $("#queueEntry_1 .queuePlayerContainer.3Player .queuePlayerName input");
-  var queuePlayer4Name = $("#queueEntry_1 .queuePlayerContainer.4Player .queuePlayerName input");
+  var queuePlayer1Name = $("#queueEntry_creation .queuePlayerContainer.1Player .queuePlayerName input");
+  var queuePlayer2Name = $("#queueEntry_creation .queuePlayerContainer.2Player .queuePlayerName input");
+  var queuePlayer3Name = $("#queueEntry_creation .queuePlayerContainer.3Player .queuePlayerName input");
+  var queuePlayer4Name = $("#queueEntry_creation .queuePlayerContainer.4Player .queuePlayerName input");
 
-  var queueBookingButton = $("#queueEntry_1 .bookingButton");
+  var queueBookingButton = $("#queueEntry_creation .bookingButton");
 
   if (queuePlayer1Name.val() != "" && queuePlayer2Name.val() != "" && queuePlayer3Name.val() != "" && queuePlayer4Name.val() != "") {
     queueBookingButton.attr("class", "bookingButton active");
@@ -273,10 +300,10 @@ function checkTableState() {
 }
 
 function dropUsers() {
-  webSocket.emit("administration","dropUsers");
+  webSocket.emit("administration", "dropUsers");
 }
 
 function dropMatches() {
-  webSocket.emit("administration","dropMatches");
+  webSocket.emit("administration", "dropMatches");
 }
 

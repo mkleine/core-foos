@@ -3,6 +3,9 @@ body {
   font-family: 'Verdana', serif;
 }
 
+.invisible {
+  display: none;
+}
 #header {
   background-color: #4e3e38;
 }
@@ -100,12 +103,12 @@ body {
 }
 
 /* ------ Queue ------*/
-#queueContainer {
+#queueContainer, #queueCreationContainer {
   text-align: center;
   margin-top: 30px;
 }
 
-#queueContainer .queueEntry {
+.queueEntry{
   background-color: #f9f9f9;
   margin: 10px auto;
   padding: 8px 10px;
@@ -114,7 +117,7 @@ body {
   text-align: left;
 }
 
-#queueContainer .queueAddEntryButton {
+.queueAddEntryButton {
   display: inline-block;
   background: url(../images/addMatchToQueueButton.png);
   width: 36px;
@@ -122,11 +125,11 @@ body {
   cursor: pointer;
 }
 
-#queueContainer .queueAddEntryButton.active {
+.queueAddEntryButton.active {
   background: url(../images/addMatchToQueueButton_hover.png);
 }
 
-#queueContainer .queueAddEntryText {
+.queueAddEntryText {
   display: inline-block;
   vertical-align: middle;
   margin-top: -25px;
@@ -134,7 +137,7 @@ body {
   color: #848484;
 }
 
-#queueContainer .queueRemoveEntryButton {
+.queueRemoveEntryButton {
   display: inline-block;
   background: url(../images/addMatchToQueueButton.png);
   width: 36px;
@@ -146,17 +149,17 @@ body {
   transform: rotate(45deg);
 }
 
-#queueContainer .queueRemoveEntryButton.active {
+.queueRemoveEntryButton.active {
   background: url(../images/addMatchToQueueButton_hover.png);
 }
 
-#queueContainer .queuePlayerContainer {
+.queuePlayerContainer {
   display: inline-block;
   margin-right: 20px;
   margin-left: 5px;
 }
 
-#queueContainer .queuePlayerImage {
+.queuePlayerImage {
   display: inline-block;
   background: url(../images/player-inactive.png);
   width: 32px;
@@ -164,22 +167,22 @@ body {
   cursor: pointer;
 }
 
-#queueContainer .queuePlayerImage.active {
+.queuePlayerImage.active {
   background: url(../images/player-active.png) !important;
 }
 
-#queueContainer .queuePlayerImage.hover {
+.queuePlayerImage.hover {
   background: url(../images/player-hover.png);
 }
 
 
-#queueContainer .queuePlayerName {
+.queuePlayerName {
   display: inline-block;
   margin-left: 8px;
 }
 
 
-#queueContainer .queuePlayerName input {
+.queuePlayerName input {
   margin-top: -22px;
   vertical-align: middle;
   font-family: Arial, sans-serif;
@@ -194,10 +197,10 @@ body {
 }
 
 
-#queueContainer .queuePlayerName input[disabled] {
+.queuePlayerName input[disabled] {
   border: none;
 }
-#queueContainer .bookingButton {
+.bookingButton {
   display: inline-block;
   background: url(../images/sport_soccer_inactive.png);
   width: 32px;
@@ -205,7 +208,7 @@ body {
   cursor: default;
 }
 
-#queueContainer .bookingButton.active {
+.bookingButton.active {
   background: url(../images/sport_soccer_active.png);
   cursor: pointer;
 }
