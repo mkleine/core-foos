@@ -18,6 +18,7 @@
     <module>client-jangaroo</module>
     <module>ui-client</module>
     <!--<module>client-android</module>-->
+    <module>client-web-mobile</module>
   </modules>
 
 </project>

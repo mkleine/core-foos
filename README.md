@@ -177,6 +177,10 @@ Some notes:
 * (Optional) Authentication via QR-Code
      * A spcific QR-Code is generated and attached to the kicker
      * Scanning the QR-Code will trigger a URL that automatically removes the active match from the *match queue*)
+     * Online QR-Code generators
+          * [QR Code Generator](http://www.qrcode-generator.de/)
+          * [Kaywa QR-Code](http://qrcode.kaywa.com/)
+          * [GoQR](http://goqr.me/de/)
 
 # Weblinks
 

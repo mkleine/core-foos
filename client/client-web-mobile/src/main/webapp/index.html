@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html>
+<head>
+  <title>CoreFoos Mobile</title>
+  <link href='http://fonts.googleapis.com/css?family=Nunito' rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=Oxygen' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" type="text/css" href="resources/css/main.css"/>
+
+  <script type="text/javascript" src="http://${server.host}:${server.port}/socket.io/socket.io.js"></script>
+  <script type="text/javascript" src="resources/javascript/jquery-1.7.2.js"></script>
+  <script type="text/javascript" src="resources/javascript/main.js"></script>
+</head>
+
+<body>
+  <div id="header">
+    &nbsp;
+    <div id="statusContainer">
+      <div id="statusTitle">Kickerstatus</div>
+      <div id="statusView"></div>
+      <div id="statusCounter">
+        <img src="resources/images/clock-icon.png">
+
+        <div class="countdownText"><span>seit <span id="timeValue">0</span> Minuten</span></div>
+      </div>
+    </div>
+    &nbsp;
+  </div>
+
+  <div id="statsContainer">
+    <div id="statsInnerContainer">
+      <div class="statsDetailContainer">
+        <div id="queueSizeValue" class="statsDetailValue">3</div>
+        <div class="statsDetailLabel">Anzahl Buchungen</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="btnEndCurrentMatch" class="appButton">Laufendens Match beenden</div>
+
+  <div id="btnQuickBook" class="appButton">Schnellbuchung</div>
+</body>
+</html>
