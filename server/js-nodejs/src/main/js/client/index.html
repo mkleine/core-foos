@@ -75,12 +75,12 @@
 </div>
 
 
-<script type="text/javascript" src="http://${server}:${port}/socket.io/socket.io.js"></script>
+<script type="text/javascript" src="http://${server.host}:${server.port}/socket.io/socket.io.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.5.2.js"></script>
 
 <script type="text/javascript">
   $(document).ready(function () {
-    var webSocket = io.connect('http://${server}:${port}');
+    var webSocket = io.connect('http://${server.host}:${server.port}');
 
     webSocket.on('connect', function () {
       $('#messages').append('<li>Connected to the server.</li>');
