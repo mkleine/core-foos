@@ -2,7 +2,7 @@
  * Main JS file of core-foos webapp.
  */
 
-const url = 'http://co5pcdv03.coremedia.com:80';
+const url = 'http://${server.host}:${server.port}';
 
 var statusFreeText = "frei";
 var statusOccupiedText = "besetzt";
