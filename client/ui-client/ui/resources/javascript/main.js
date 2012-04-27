@@ -96,6 +96,7 @@ function initServerConnection() {
   });
 
   webSocket.on('current_match', function (match) {
+    console.log("current match :" + JSON.stringify(match));
     receiveCurrentMatch();
     if(match && match.state) {
       currentMatchId = match._id;
