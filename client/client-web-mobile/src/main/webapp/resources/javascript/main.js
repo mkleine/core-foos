@@ -141,7 +141,6 @@ function prepareButtonEndMatch() {
 function endCurrentKickerMatch() {
   endCurrentMatchButtonClicked = true;
   webSocket.emit("current_match"); // see 'initServerConnection()' for processing of server response
-  alert("end the match!");
 }
 
 function prepareButtonBookQuickMatch() {
@@ -149,6 +148,34 @@ function prepareButtonBookQuickMatch() {
 }
 
 function quickBookMatch() {
-  alert("quick book match!");
+  var user01 = {};
+  var user02 = {};
+  var user03 = {};
+  var user04 = {};
+  var users = [user01, user02, user03, user04]
+
+  var prefix = "quickMatch_";
+  var clientTime = clientTimeString();
+
+  user01.name = prefix + "_1" + clientTime;
+  user02.name = prefix + "_2" + clientTime;
+  user03.name = prefix + "_3" + clientTime;
+  user04.name = prefix + "_4" + clientTime;
+
+  webSocket.emit("register", users);
+  updateNumberOfBookedMatches();
+}
+
+function updateNumberOfBookedMatches() {
+  webSocket.emit("check_table_state");
+  webSocket.emit("waiting_matches");
+}
+
+function clientTimeString() {
+  var now = new Date();
+  var hours = now.getHours();
+  var minutes = now.getMinutes();
+  var milliSeconds = now.getMilliseconds();
+  return "__" + hours + ":" + minutes + "_uhr__" + milliSeconds + " msecs";
 }
 

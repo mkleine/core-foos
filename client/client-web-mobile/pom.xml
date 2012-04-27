@@ -25,10 +25,9 @@
             <resource>
               <directory>src/main/webapp</directory>
               <filtering>true</filtering>
-              <includes>
-                <include>**/*.js</include>
-                <include>**/*.html</include>
-              </includes>
+              <excludes>
+                <exclude>**/*.png</exclude>
+              </excludes>
             </resource>
           </webResources>
         </configuration>
