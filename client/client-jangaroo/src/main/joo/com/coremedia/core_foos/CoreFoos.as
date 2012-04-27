@@ -25,13 +25,21 @@ public class CoreFoos {
 
   public static function main(url:String, statusElementId:String, joinElementId:String,  leaveElementId:String)  : void {
 
-    var status:HTMLElement = window.document.getElementById(statusElementId) as HTMLElement;
-    var join:HTMLElement = window.document.getElementById(joinElementId) as HTMLElement;
-    var leave:HTMLElement = window.document.getElementById(leaveElementId) as HTMLElement;
-    if( status == null || join == null || leave == null) {
-      throw new Error("Unknown element");
+    try {
+
+      var status:HTMLElement = window.document.getElementById(statusElementId) as HTMLElement;
+      var join:HTMLElement = window.document.getElementById(joinElementId) as HTMLElement;
+      var leave:HTMLElement = window.document.getElementById(leaveElementId) as HTMLElement;
+      if( status == null || join == null || leave == null) {
+        throw new Error("Unknown element");
+      }
+      new CoreFoos(url, status, join, leave);
     }
-    new CoreFoos(url, status, join, leave);
+    catch(error:*) {
+
+      window.alert("An error has occurred: "+error);
+    }
+
   }
 
 
