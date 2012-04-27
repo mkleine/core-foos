@@ -1,10 +1,8 @@
 /**
- * Created by IntelliJ IDEA.
- * User: skrause
- * Date: 26.04.12
- * Time: 14:25
- * To change this template use File | Settings | File Templates.
+ * Main JS file of core-foos webapp.
  */
+
+const url = 'http://co5pcdv03.coremedia.com:2000';
 
 var statusFreeText = "frei";
 var statusOccupiedText = "besetzt";
@@ -28,16 +26,24 @@ $(function () {
   $("#dropUsers").click(dropUsers);
   $("#dropMatches").text('dropMatches');
   $("#dropMatches").click(dropMatches);
+  $("#statusCounter").css('display','none');
 //  initStatusView(QUEUE_SIZE);
   refreshQueueSize();
   initUi();
 });
 
 function initServerConnection() {
-  webSocket = io.connect('http://co5pcdv03.coremedia.com:2000');
+  webSocket = io.connect(url);
   webSocket.on('connect', function () {
-    alert('Connected to the server.');
+    console.log('Connected to: ' + url);
   });
+
+  webSocket.on('receive_time',
+          function(data) {
+            console.log("Receiving time: "+ JSON.stringify(data));
+            $("#statusCounter").css('display','inline-block');
+          }
+  )
 
   webSocket.on('table_state', function (data) {
     setOccupied(data.occupied);
@@ -45,7 +51,12 @@ function initServerConnection() {
   });
 
   webSocket.on('start_match', function (data) {
-//    alert("Start match with " + JSON.stringify(data));
+    console.log("Start match with " + JSON.stringify(data));
+    checkTableState();
+  });
+
+  webSocket.on('end_match', function (data) {
+    console.log("End match with " + JSON.stringify(data));
     checkTableState();
   });
 
@@ -56,7 +67,7 @@ function initServerConnection() {
   });
 
   webSocket.on('registration_complete', function (data) {
-    alert("register"+data);
+    console.log("registering match "+data);
   });
 
 }
