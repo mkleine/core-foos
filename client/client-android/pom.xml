@@ -18,9 +18,12 @@
   <properties>
     <android.sdk.path>C:/Progra~2/Android/android-sdk</android.sdk.path>
     <!--<jangaroo.version>0.9.14</jangaroo.version>-->
-    <assets.dir>${project.build.directory}/assets</assets.dir>
-    <client.name>client-jquery</client.name><!-- name of the HTML client webapp to be used included.
-    either "client-jquery" or "client-jangaroo"  -->
+
+    <!-- place to put all assets -->
+    <project.build.assets>${project.build.directory}/assets</project.build.assets>
+
+    <!-- name of the HTML client webapp to be used included. either "client-jquery" or "client-jangaroo"  -->
+    <client.name>client-jquery</client.name>
   </properties>
 
 
@@ -56,9 +59,8 @@
       </plugin>
 
       <plugin>
-
         <!--
-           copy HTML5 files to assets dir
+           Add "external" HTML5 assets
         -->
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
@@ -68,8 +70,7 @@
               <goal>unpack</goal>
             </goals>
             <configuration>
-              <outputDirectory>${assets.dir}</outputDirectory>
-              <!--<outputDirectory>${project.build.directory}/generated-sources/combined-assets/assets</outputDirectory>-->
+              <outputDirectory>${project.build.assets}</outputDirectory>
               <artifactItems>
                 <artifactItem>
                   <groupId>${project.groupId}</groupId>
@@ -78,6 +79,31 @@
                   <type>war</type>
                 </artifactItem>
               </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!--
+         Add local assets
+      -->
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.5</version>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.assets}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/android/assets</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>
@@ -127,7 +153,7 @@
           <!-- apk -->
           <androidManifestFile>src/main/android/AndroidManifest.xml</androidManifestFile>
           <resourceDirectory>src/main/android/res</resourceDirectory>
-          <assetsDirectory>${assets.dir}</assetsDirectory>
+          <assetsDirectory>${project.build.assets}</assetsDirectory>
 
         </configuration>
 
