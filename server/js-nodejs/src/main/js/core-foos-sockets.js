@@ -41,6 +41,7 @@ webSocket.on('connection', function (client) {
                 client.broadcast.emit("start_match", match);
                 client.emit("start_match", match);
             }
+            client.broadcast.emit('registration_complete');
             client.emit('registration_complete');
         });
         return;
