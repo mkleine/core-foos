@@ -121,6 +121,12 @@ function getCurrentMatch(client) {
   });
 }
 
+function getNumberOfPlayedMatches(client) {
+  repository.getNumberOfPlayedMatches(function (number) {
+    client.emit('number_of_played_matches', number);
+  });
+}
+
 function getTableState(client) {
     repository.getNumberOfActiveMatches(function (count) {
             if (count == 0) {

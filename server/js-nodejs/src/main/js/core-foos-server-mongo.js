@@ -38,9 +38,14 @@ var count = function (collection, expr, callback) {
   });
 };
 
+var incrementCounter = function (collection, name) {
+  collection.update({name:name}, {$inc:{value:1}});
+};
+
 exports.remove = remove;
 exports.update = update;
 exports.upsert = upsert;
 exports.find = find;
 exports.insert = insert;
 exports.count = count;
+exports.incrementCounter = incrementCounter;

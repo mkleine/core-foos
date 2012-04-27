@@ -3,9 +3,11 @@ var mongo = require('./core-foos-server-mongo');
 
 var usersCollection = "users";
 var matchesCollection = "matches";
+var countersCollection = "counters";
 
 var users;
 var matches;
+var counters;
 
 
 var USER_STATE_MATCH_REQUESTED = "MATCH_REQUESTED";
@@ -16,6 +18,8 @@ var USER_STATE_CANCELLED = "CANCELLED";
 var MATCH_STATE_FINISHED = "FINISHED";
 var MATCH_STATE_WAITING = "WAITING";
 var MATCH_STATE_ACTIVE = "ACTIVE";
+
+var COUNTER_NAME_NUM_MATCHES = "counter:numberOfMatches";
 
 var initialize = function (config) {
   const mongoHost = config.mongoHost ? config.mongoHost : 'localhost';
@@ -33,7 +37,10 @@ var initialize = function (config) {
     users = new mongodb.Collection(client, usersCollection);
     users.ensureIndex({name:1}, {unique:true}, {});
     matches = new mongodb.Collection(client, matchesCollection);
-    //generateTestData(client);
+    counters = new mongodb.Collection(client, countersCollection);
+    mongo.upsert(counters, {name:COUNTER_NAME_NUM_MATCHES}, {value:0}, function () {
+    });
+    generateTestData(client);
     console.log("Really open");
   });
   console.log("ready for action");
@@ -170,6 +177,7 @@ var startMatch = function (callback) {
           mongo.upsert(matches, {_id:match._id}, {state:MATCH_STATE_ACTIVE, startDate:date}, function () {
             console.log("Really start match");
             callback({match:match, date:date});
+            mongo.incrementCounter(counters, COUNTER_NAME_NUM_MATCHES);
           });
         } else {
           callback();
@@ -179,23 +187,26 @@ var startMatch = function (callback) {
   });
 };
 
-var endMatch = function (id, callback) { //by id??
-  mongo.find(matches, {_id:mongodb.ObjectID.createFromHexString(id)}, {}).toArray(function (err, matchesArray) {
-    if (matchesArray && matchesArray.length > 0) {
-      var match = matchesArray[0];
-      mongo.update(users, {name:match.userName1}, {state:USER_STATE_FINISHED}, function () {
-      });
-      mongo.update(users, {name:match.userName2}, {state:USER_STATE_FINISHED}, function () {
-      });
-      mongo.update(users, {name:match.userName3}, {state:USER_STATE_FINISHED}, function () {
-      });
-      mongo.update(users, {name:match.userName4}, {state:USER_STATE_FINISHED}, function () {
-      });
-      mongo.update(matches, {_id:match._id}, {state:MATCH_STATE_FINISHED, endDate:new Date()}, function () {
-        startMatch(callback);
-      });
-    }
-  });
+var endMatch = function (id, callback) {
+  console.log("End match for id " + id);
+  if (id) {
+    mongo.find(matches, {_id:mongodb.ObjectID.createFromHexString(id)}, {}).toArray(function (err, matchesArray) {
+      if (matchesArray && matchesArray.length > 0) {
+        var match = matchesArray[0];
+        mongo.update(users, {name:match.userName1}, {state:USER_STATE_FINISHED}, function () {
+        });
+        mongo.update(users, {name:match.userName2}, {state:USER_STATE_FINISHED}, function () {
+        });
+        mongo.update(users, {name:match.userName3}, {state:USER_STATE_FINISHED}, function () {
+        });
+        mongo.update(users, {name:match.userName4}, {state:USER_STATE_FINISHED}, function () {
+        });
+        mongo.update(matches, {_id:match._id}, {state:MATCH_STATE_FINISHED, endDate:new Date()}, function () {
+          startMatch(callback);
+        });
+      }
+    });
+  }
 };
 
 var currentMatch = function (callback) {
@@ -208,6 +219,17 @@ var currentMatch = function (callback) {
   });
 };
 
+var getNumberOfPlayedMatches = function (callback) {
+  mongo.find(counters, {name:COUNTER_NAME_NUM_MATCHES}, {}).toArray(function (err, result) {
+    if (result && result.length > 0) {
+      callback(result[0].value);
+    } else {
+      callback();
+    }
+  })
+};
+
+
 exports.getListOfUsers = getListOfUsers;
 exports.requestPlay = requestPlay;
 exports.cancelPlay = cancelPlay;
@@ -217,6 +239,7 @@ exports.initialize = initialize;
 exports.getNumberOfMatches = getNumberOfMatches;
 exports.getNumberOfActiveMatches = getNumberOfActiveMatches;
 exports.getListOfMatches = getListOfMatches;
+exports.getNumberOfPlayedMatches = getNumberOfPlayedMatches;
 exports.administration = function (cmd, callback) {
   if (cmd == "dropUsers") {
     mongo.remove(users, {});
