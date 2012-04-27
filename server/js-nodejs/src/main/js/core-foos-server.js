@@ -92,7 +92,7 @@ var generateTestData = function (client) {
     currentMatch(function (match) {
       if (match) {
         console.log("end match..." + match._id)
-        endMatch(match._id.toString(), function () {
+        endMatch(function () {
         });
       }
     })
@@ -187,26 +187,24 @@ var startMatch = function (callback) {
   });
 };
 
-var endMatch = function (id, callback) {
-  console.log("End match for id " + id);
-  if (id) {
-    mongo.find(matches, {_id:mongodb.ObjectID.createFromHexString(id)}, {}).toArray(function (err, matchesArray) {
-      if (matchesArray && matchesArray.length > 0) {
-        var match = matchesArray[0];
-        mongo.update(users, {name:match.userName1}, {state:USER_STATE_FINISHED}, function () {
-        });
-        mongo.update(users, {name:match.userName2}, {state:USER_STATE_FINISHED}, function () {
-        });
-        mongo.update(users, {name:match.userName3}, {state:USER_STATE_FINISHED}, function () {
-        });
-        mongo.update(users, {name:match.userName4}, {state:USER_STATE_FINISHED}, function () {
-        });
-        mongo.update(matches, {_id:match._id}, {state:MATCH_STATE_FINISHED, endDate:new Date()}, function () {
-          startMatch(callback);
-        });
-      }
-    });
-  }
+var endMatch = function (callback) {
+  console.log("End match");
+  mongo.find(matches, {state:MATCH_STATE_ACTIVE}, {}).toArray(function (err, matchesArray) {
+    if (matchesArray && matchesArray.length > 0) {
+      var match = matchesArray[0];
+      mongo.update(users, {name:match.userName1}, {state:USER_STATE_FINISHED}, function () {
+      });
+      mongo.update(users, {name:match.userName2}, {state:USER_STATE_FINISHED}, function () {
+      });
+      mongo.update(users, {name:match.userName3}, {state:USER_STATE_FINISHED}, function () {
+      });
+      mongo.update(users, {name:match.userName4}, {state:USER_STATE_FINISHED}, function () {
+      });
+      mongo.update(matches, {_id:match._id}, {state:MATCH_STATE_FINISHED, endDate:new Date()}, function () {
+        startMatch(callback);
+      });
+    }
+  });
 };
 
 var currentMatch = function (callback) {

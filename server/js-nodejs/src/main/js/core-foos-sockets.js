@@ -63,8 +63,8 @@ webSocket.on('connection', function (client) {
     getCurrentMatch(client);
   });
 
-    client.on('end_match', function (data) {
-        repository.endMatch(data.matchId, function (match) {
+    client.on('end_match', function () {
+        repository.endMatch(function (match) {
             if (match) {
                 client.broadcast.emit("start_match", match);
                 client.emit("start_match", match);
