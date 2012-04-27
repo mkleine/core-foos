@@ -103,15 +103,28 @@ webSocket.on('connection', function (client) {
                     function() {
                       if(cmd == 'dropMatches') {
                         client.emit("table_state", {occupied:false});
-                        client.emit('current_match', {date : new Date()});
                         client.broadcast.emit("table_state", {occupied:false});
-                        client.broadcast.emit('current_match', {date : new Date()});
+                        client.emit('current_match', {});
+                        client.broadcast.emit('current_match', {});
+                        repository.lastFinishedMatch(function (match) {
+                          var result = {lastFinishedMatch: match};
+                          client.emit("last_finished_match", result);
+                          client.broadcast.emit("last_finished_match", result);
+                        });
                       }
                       client.emit('administration',cmd);
                     }
             )
           }
   );
+
+  client.on('last_finished_match', function () {
+    repository.lastFinishedMatch(function (match) {
+      client.emit("last_finished_match", {lastFinishedMatch: match});
+      console.log('LAST FINISHED MATCH:' + JSON.stringify(match));
+    });
+  });
+
 
 });
 

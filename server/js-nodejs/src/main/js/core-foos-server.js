@@ -253,3 +253,10 @@ exports.administration = function (cmd, callback) {
   }
   callback();
 };
+exports.lastFinishedMatch = function (callback) {
+  mongo.find(matches, {state:MATCH_STATE_FINISHED}, {}).sort('date', -1).limit(1).toArray(function (err, result) {
+    if (result && result.length > 0) {
+      callback(result[0]);
+    }
+  });
+};

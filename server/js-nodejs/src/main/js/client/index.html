@@ -54,6 +54,11 @@
   <p>
     <button id="currentMatchButton">Get current match</button>
   </p>
+
+  <p>
+    <button id="lastFinishedMatch">Get last finished match</button>
+  </p>
+
 </div>
 <p>Messages</p>
 
@@ -75,12 +80,12 @@
 </div>
 
 
-<script type="text/javascript" src="http://${server.host}:${server.port}/socket.io/socket.io.js"></script>
+<script type="text/javascript" src="http://localhost:2000/socket.io/socket.io.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.5.2.js"></script>
 
 <script type="text/javascript">
   $(document).ready(function () {
-    var webSocket = io.connect('http://${server.host}:${server.port}');
+    var webSocket = io.connect('http://localhost:2000');
 
     webSocket.on('connect', function () {
       $('#messages').append('<li>Connected to the server.</li>');
@@ -139,6 +144,16 @@
       }
     });
 
+    webSocket.on('last_finished_match', function (match) {
+      console.log('match:' + match);
+      if(match) {
+        console.dir(match.lastFinishedMatch);
+        console.log("minites: " + new Date(match.lastFinishedMatch.endDate).getUTCMinutes());
+        $('#lastFinishedtMatch').val(match.lastFinishedMatch._id);
+      }
+    });
+
+
     $('#enterButton').bind('click', function () {
       var user1 = $('#user1').val();
       var user2 = $('#user2').val();
@@ -184,6 +199,10 @@
     $('#currentMatchButton').bind('click', function () {
       webSocket.emit("current_match");
     });
+    $('#lastFinishedMatch').bind('click', function () {
+      webSocket.emit("last_finished_match");
+    });
+
   });
 </script>
 </body>

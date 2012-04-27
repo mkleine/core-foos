@@ -16,6 +16,15 @@ var webSocket;
 var testIndex = 2;
 var currentMatchId;
 
+var idleTimeInMinutes = 0;
+window.setInterval(
+        function(){
+          console.log('updating timer');
+          $("#timeValue").text(parseInt($("#timeValue").text(),10) + 1)
+        },
+        1000*60
+)
+
 // init
 $(function () {
   initServerConnection();
@@ -40,11 +49,19 @@ function initServerConnection() {
     console.log('Connected to: ' + url);
   });
 
-  webSocket.on('receive_time',
+  webSocket.on('last_finished_match',
           function (data) {
-            console.log("Receiving time: " + JSON.stringify(data));
-            $("#statusCounter").css('display', 'inline-block');
+            console.log('last_finished_match' + JSON.stringify(data));
+            var endDate = new Date(data.lastFinishedMatch.endDate);
+            console.log(endDate);
+            updateTimer(endDate);
           }
+  );
+
+  webSocket.emit('last_finished_match'); // trigger initialization of timer
+
+  webSocket.on('current_match',
+    receiveCurrentMatch
   );
 
   webSocket.on('table_state', function (data) {
@@ -289,21 +306,26 @@ function toggleBooking(bookFlag, players) {
   }
 }
 
+function updateTimer(date) {
+  console.log("updating timer with date "+date );
+  // TODO why do we get 'Invalid Date' here?
+  if(date && date != "Invalid Date") {
+    var now = new Date();
+    var idleTimeInMillis = now.getTime() - date.getTime();
+    idleTimeInMinutes = Math.round(idleTimeInMillis/60000);
+  }
+  $("#statusCounter").css('display', 'inline-block');
+  $("#timeValue").text(idleTimeInMinutes);
+}
+
 function receiveCurrentMatch(data) {
   if(data){
     console.log("Receiving current : "+ JSON.stringify(data));
-    var minutes = new Date().getUTCMinutes() - new Date(data['date']).getUTCMinutes();
-    $("#statusCounter").css('display','inline-block');
-    $("#timeValue").text(minutes);
-    window.setTimeout(updateTime,1000*60)
+    updateTimer(new Date(data.startDate));
   } else {
-    console.log("Current match is " + data);
+    // this is actually an error
+    console.warn("Current match is " + data);
   }
-}
-
-function updateTime(){
-  $("#timeValue").text(parseInt($("#timeValue").text(),10) + 1);
-  window.setTimeout(updateTime,1000*60);
 }
 
 function refreshQueueSize() {
