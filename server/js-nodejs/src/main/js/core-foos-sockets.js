@@ -30,7 +30,8 @@ var webSocket = socketIO.listen(httpServer);
 
 
 webSocket.on('connection', function (client) {
-    client.emit("message", 'Welcome to Core Foo Kicker App');
+  client.emit("message", 'Welcome to Core Foo Kicker App');
+  getCurrentMatch(client);
     client.on('register', function (data) {
 
         repository.requestPlay(data, function (match) {
@@ -59,10 +60,8 @@ webSocket.on('connection', function (client) {
     });
 
   client.on('current_match', function() {
-    repository.currentMatch(function (match) {
-    client.emit('current_match', match);
-    return;
-  })});
+    getCurrentMatch(client);
+  });
 
     client.on('end_match', function (data) {
         repository.endMatch(data.matchId, function (match) {
@@ -99,6 +98,12 @@ webSocket.on('connection', function (client) {
             console.log("performing administrative command: "+ cmd);
             repository.administration(cmd,
                     function() {
+                      if(cmd == 'dropMatches') {
+                        client.emit("table_state", {occupied:false});
+                        client.emit('current_match', {date : new Date()});
+                        client.broadcast.emit("table_state", {occupied:false});
+                        client.broadcast.emit('current_match', {date : new Date()});
+                      }
                       client.emit('administration',cmd);
                     }
             )
@@ -106,6 +111,15 @@ webSocket.on('connection', function (client) {
   );
 
 });
+
+function getCurrentMatch(client) {
+  repository.currentMatch(function (match) {
+    if(!match) {
+      match = {date:new Date()};
+    }
+    client.emit('current_match', match);
+  });
+}
 
 function getTableState(client) {
     repository.getNumberOfActiveMatches(function (count) {

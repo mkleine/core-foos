@@ -38,12 +38,13 @@ function initServerConnection() {
     console.log('Connected to: ' + url);
   });
 
-  webSocket.on('receive_time',
-          function(data) {
-            console.log("Receiving time: "+ JSON.stringify(data));
-            $("#statusCounter").css('display','inline-block');
-          }
-  )
+  webSocket.on('message',function(msg){
+    console.log(msg);
+  });
+
+  webSocket.on('current_match',
+    receiveCurrentMatch
+  );
 
   webSocket.on('table_state', function (data) {
     setOccupied(data.occupied);
@@ -227,6 +228,23 @@ function toggleBooking(bookFlag, players) {
 
     $("#bookingButton").val(buttonAddBookingText);
   }
+}
+
+function receiveCurrentMatch(data) {
+  if(data){
+    console.log("Receiving current : "+ JSON.stringify(data));
+    var minutes = new Date().getUTCMinutes() - new Date(data['date']).getUTCMinutes();
+    $("#statusCounter").css('display','inline-block');
+    $("#timeValue").text(minutes);
+    window.setTimeout(updateTime,1000*60)
+  } else {
+    console.log("Current match is " + data);
+  }
+}
+
+function updateTime(){
+  $("#timeValue").text(parseInt($("#timeValue").text(),10) + 1);
+  window.setTimeout(updateTime,1000*60);
 }
 
 function refreshQueueSize() {

@@ -205,4 +205,5 @@ exports.administration = function(cmd,callback) {
    } else {
      console.warn("unknown cmd: "+ cmd);
    }
+  callback();
 };
