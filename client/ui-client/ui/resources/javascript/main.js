@@ -2,7 +2,7 @@
  * Main JS file of core-foos webapp.
  */
 
-const url = 'http://${server.host}:${server.port}';
+const url = 'http://co5pcdv03.coremedia.com:2000';
 
 var statusFreeText = "frei";
 var statusOccupiedText = "besetzt";
@@ -14,6 +14,8 @@ var occupied = false;
 var queueSize = 0;
 var webSocket;
 var testIndex = 2;
+var currentMatchId;
+
 // init
 $(function () {
   initServerConnection();
@@ -45,10 +47,6 @@ function initServerConnection() {
           }
   );
 
-  webSocket.on('current_match',
-    receiveCurrentMatch
-  );
-
   webSocket.on('table_state', function (data) {
     setOccupied(data.occupied);
     initStatusView(getQueueSize(), getOccupied());
@@ -57,6 +55,9 @@ function initServerConnection() {
   webSocket.on('start_match', function (data) {
     console.log("Start match with " + JSON.stringify(data));
     checkTableState();
+    if(data.match && data.match.state) {
+      addCurrentMatchQueueEntry(0,[data.match.player1, data.match.player2, data.match.player3, data.match.player4], data.match.requestDate);
+    }
   });
 
   webSocket.on('end_match', function (data) {
@@ -77,13 +78,13 @@ function initServerConnection() {
   });
 
   webSocket.on('current_match', function (match) {
+    receiveCurrentMatch();
     if(match && match.state) {
+      currentMatchId = match._id;
       addCurrentMatchQueueEntry(0,[match.player1, match.player2, match.player3, match.player4], match.date);
     }
   });
-
 }
-
 
 function showQueueList(matches) {
 
@@ -96,6 +97,7 @@ function showQueueList(matches) {
 
 
 function addCurrentMatchQueueEntry(number, playerArray, createDate) {
+  $("#currentMatchContainer").empty();
   $('<div id="currentMatch_' + number + '" class="queueEntry"></div>').appendTo('#currentMatchContainer');
   $('<div class="queueRemoveEntryButton"></div>').appendTo('#currentMatch_' + number);
 
@@ -106,6 +108,11 @@ function addCurrentMatchQueueEntry(number, playerArray, createDate) {
 
   var a =  new Date(createDate).getHours() +":"+new Date(createDate).getMinutes();
   $('<div class="queueDateContainer">erstellt um '+ a+'</div>').appendTo('#currentMatch_' + number);
+
+  var currentMatchRemoveContainer = $("#currentMatchContainer .queueRemoveEntryButton");
+  currentMatchRemoveContainer.click(function() {
+    endCurrentMatch();
+  });
 }
 
 
@@ -145,6 +152,7 @@ function initUi() {
   var queuePlayer4Name = $("#queueEntry_creation .queuePlayerContainer.4Player .queuePlayerName input");
 
 
+
   var queueBookingButton = $("#queueEntry_creation .bookingButton");
 
   // toggle buttons hover
@@ -157,6 +165,7 @@ function initUi() {
     $("#queueCreationEntry").attr("class", "queueEntry invisible");
     $("#queueEntry_creation").attr("class", "queueEntry");
   });
+
 
   /*
    queueRemoveEntryButton.hover(function () {
@@ -329,3 +338,6 @@ function dropMatches() {
   webSocket.emit("administration", "dropMatches");
 }
 
+function endCurrentMatch(){
+  webSocket.emit("end_match", {matchId:currentMatchId});
+}
