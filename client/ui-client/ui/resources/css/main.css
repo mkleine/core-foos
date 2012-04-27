@@ -238,3 +238,12 @@ body {
 #currentMatchContainer .queuePlayerName input {
   background-color: #F9F9F9;
 }
+
+.matchText {
+  display: inline-block;
+  width: 770px;
+  text-align: left;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  color: #757171;
+}
