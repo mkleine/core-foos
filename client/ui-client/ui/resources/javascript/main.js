@@ -76,6 +76,12 @@ function initServerConnection() {
     console.log("registering match " + JSON.stringify(data));
   });
 
+  webSocket.on('current_match', function (match) {
+    if(match) {
+      console.log("current_match " + JSON.stringify(match));
+    }
+  });
+
 }
 
 
@@ -88,6 +94,21 @@ function showQueueList(matches) {
   });
 }
 
+
+function addCurrentMatchQueueEntry(number, playerArray, createDate) {
+  $('<div id="currentMatch_' + number + '" class="queueEntry"></div>').appendTo('#queueContainer');
+  $('<div class="queueRemoveEntryButton"></div>').appendTo('#queueEntry_' + number);
+
+  addPlayerContainer(1, '#queueEntry_' + number, playerArray[0]);
+  addPlayerContainer(2, '#queueEntry_' + number, playerArray[1]);
+  addPlayerContainer(3, '#queueEntry_' + number, playerArray[2]);
+  addPlayerContainer(4, '#queueEntry_' + number, playerArray[3]);
+
+  var a =  new Date(createDate).getHours() +":"+new Date(createDate).getMinutes();
+  $('<div class="queueDateContainer">erstellt um '+ a+'</div>').appendTo('#queueEntry_' + number);
+}
+
+
 function addReadOnlyQueueEntry(number, playerArray, createDate) {
   $('<div id="queueEntry_' + number + '" class="queueEntry"></div>').appendTo('#queueContainer');
   $('<div class="queueRemoveEntryButton"></div>').appendTo('#queueEntry_' + number);
@@ -97,7 +118,8 @@ function addReadOnlyQueueEntry(number, playerArray, createDate) {
   addPlayerContainer(3, '#queueEntry_' + number, playerArray[2]);
   addPlayerContainer(4, '#queueEntry_' + number, playerArray[3]);
 
-  $('<div class="queueDateContainer">'+createDate+'</div>').appendTo('#queueEntry_' + number);
+  var a =  new Date(createDate).getHours() +":"+new Date(createDate).getMinutes();
+  $('<div class="queueDateContainer">erstellt um '+ a+'</div>').appendTo('#queueEntry_' + number);
 }
 
 function addPlayerContainer(playerNumber, rootQueueEntryContainerId, playerName) {

@@ -113,7 +113,7 @@ body {
   margin: 10px auto;
   padding: 8px 10px;
   border: 1px solid #eeeeee;
-  width: 900px;
+  width: 750px;
   text-align: left;
 }
 
@@ -191,7 +191,7 @@ body {
   border: 1px solid #e1e1e1;
   background-color: #fcfcfc;
   height: 22px;
-  width: 120px;
+  width: 80px;
   padding: 3px;
 
 }
@@ -215,4 +215,13 @@ body {
 
 #dropUsers, #dropMatches {
   cursor: pointer;
+}
+
+.queueDateContainer {
+  display: inline-block;
+  vertical-align: middle;
+  font-family: Arial, sans-serif;
+  color: #848484;
+  font-size: 11px;
+  margin-top: -15px;
 }
