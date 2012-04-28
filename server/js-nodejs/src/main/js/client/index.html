@@ -1,9 +1,9 @@
 <html>
 <head>
-  <title>Core Foo</title>
+  <title>Core Foos</title>
 </head>
 <body>
-<p>Welcome to CoreFoo V0.01</p>
+<p>Welcome to CoreFoos</p>
 
 <div>
   <p>
@@ -88,12 +88,13 @@
 </p>
 
 
-<script type="text/javascript" src="http://localhost:2000/socket.io/socket.io.js"></script>
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.5.2.js"></script>
 
 <script type="text/javascript">
   $(document).ready(function () {
-    var webSocket = io.connect('http://localhost:2000');
+    console.info("opening socket to "+location.href);
+    var webSocket = io.connect(location.href);
 
     webSocket.on('connect', function () {
       $('#messages').append('<li>Connected to the server.</li>');

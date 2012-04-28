@@ -2,8 +2,6 @@
  * Main JS file of core-foos webapp.
  */
 
-const url = 'http://${server.host}:${server.port}';
-
 var statusFreeText = "frei";
 var statusOccupiedText = "besetzt";
 var statusWaitingText = "wartend";
@@ -41,6 +39,7 @@ $(function () {
 });
 
 function initServerConnection() {
+  var url = location.href; // TODO maybe alter protocol and cut off path ?
   webSocket = io.connect(url);
   webSocket.on('connect', function () {
     console.log('Connected to: ' + url);
