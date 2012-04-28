@@ -1,49 +1,51 @@
 var mongodb = require('mongodb');
-var mongo = require('./core-foos-server-mongo');
+var mongo = require('./lib/core-foos-mongo');
+const logger = require('./lib/core-foos-util').createLogger('core-foos-server');
 
-var usersCollection = "users";
-var matchesCollection = "matches";
-var countersCollection = "counters";
+const usersCollection = "users";
+const matchesCollection = "matches";
+const countersCollection = "counters";
 
 var users;
 var matches;
 var counters;
 
+const USER_STATE_MATCH_REQUESTED = "MATCH_REQUESTED";
+const USER_STATE_WAITING = "WAITING";
+const USER_STATE_FINISHED = "FINISHED";
+const USER_STATE_CANCELLED = "CANCELLED";
 
-var USER_STATE_MATCH_REQUESTED = "MATCH_REQUESTED";
-var USER_STATE_WAITING = "WAITING";
-var USER_STATE_FINISHED = "FINISHED";
-var USER_STATE_CANCELLED = "CANCELLED";
+const MATCH_STATE_FINISHED = "FINISHED";
+const MATCH_STATE_WAITING = "WAITING";
+const MATCH_STATE_ACTIVE = "ACTIVE";
 
-var MATCH_STATE_FINISHED = "FINISHED";
-var MATCH_STATE_WAITING = "WAITING";
-var MATCH_STATE_ACTIVE = "ACTIVE";
-
-var COUNTER_NAME_NUM_MATCHES = "counter:numberOfMatches";
+const COUNTER_NAME_NUM_MATCHES = "counter:numberOfMatches";
 
 var initialize = function (config) {
   const mongoHost = config.mongoHost ? config.mongoHost : 'localhost';
   const mongoPort = config.mongoPort ? config.mongoPort : 27017;
   const mongoDbName = config.mongoDb ? config.mongoDb : 'core-foos';
-  console.log("initializing server: " + mongoDbName + ":" + mongoHost + ":" + mongoPort);
+  logger.log("initializing server: " + mongoDbName + ":" + mongoHost + ":" + mongoPort);
 
   var server = new mongodb.Server(mongoHost, mongoPort, {});
   var client = new mongodb.Db(mongoDbName, server, {});
   client.open(function (err, client) {
-    console.log("Open");
     if (err) {
       throw err;
     }
     users = new mongodb.Collection(client, usersCollection);
-    users.ensureIndex({name:1}, {unique:true}, {});
+    users.ensureIndex({name:1}, {unique:true});
     matches = new mongodb.Collection(client, matchesCollection);
     counters = new mongodb.Collection(client, countersCollection);
     mongo.upsert(counters, {name:COUNTER_NAME_NUM_MATCHES}, {value:0}, function () {
     });
-    //generateTestData(client);
-    console.log("Really open");
+    logger.log("Mongo connection open");
+
+    if(config.generateTestData){
+      logger.log("generating test data ...");
+      generateTestData(client);
+    }
   });
-  console.log("ready for action");
 };
 
 var generateTestData = function (client) {
@@ -67,10 +69,10 @@ var generateTestData = function (client) {
     {name:'xyz'}
   ], function () {
     getListOfUsers(function (users) {
-      console.log("Num users: " + users.length)
+      logger.log("Num users: " + users.length)
       cancelPlay('xyz');
       getListOfUsers(function (users) {
-        console.log("Num users: " + users.length)
+        logger.log("Num users: " + users.length)
       });
     });
   });
@@ -79,19 +81,19 @@ var generateTestData = function (client) {
   });
 
   getListOfUsers(function (users) {
-    console.log("Num users: " + users.length)
+    logger.log("Num users: " + users.length)
   });
 
 
   getNumberOfMatches(function (count) {
-    console.log("Number of matches:", count);
+    logger.log("Number of matches:", count);
   });
 
   startMatch(function () {
-    console.log("starting match");
+    logger.log("starting match");
     currentMatch(function (match) {
       if (match) {
-        console.log("end match..." + match._id)
+        logger.log("end match..." + match._id)
         endMatch(function () {
         });
       }
@@ -100,14 +102,14 @@ var generateTestData = function (client) {
 };
 
 var getListOfUsers = function (callback) {
-  console.log("Get list of users");
-  return mongo.find(users, {state:USER_STATE_WAITING}, {}).sort('date', 1).limit(50).toArray(function (err, docs) {
+  logger.log("Get list of users");
+  mongo.find(users, {state:USER_STATE_WAITING}, {}).sort('date', 1).limit(50).toArray(function (err, docs) {
     callback(docs);
   });
 };
 
 var getListOfMatches = function (callback) {
-  console.log("Get list of matches");
+  logger.log("Get list of matches");
   return mongo.find(matches, {state:MATCH_STATE_WAITING}, {}).sort('date', 1).limit(50).toArray(function (err, docs) {
     callback(docs);
   });
@@ -122,13 +124,13 @@ var getNumberOfActiveMatches = function (callback) {
 };
 
 var requestPlay = function (newUsers, callback) {
-  console.log("Got users: " + newUsers + ", add " + newUsers.length + " users");
+  logger.log("Got users: " + JSON.stringify(newUsers) + ", adding " + newUsers.length + " users");
   if (newUsers.length == 4) {
-    console.log("new users = 4");
+    logger.log("new users = 4");
     requestMatch(newUsers[0].name, newUsers[1].name, newUsers[2].name, newUsers[3].name, callback);
   } else {
     for (i = 0; i < (newUsers.length - 1); i++) {
-      console.log("Add user: " + newUsers[i].name);
+      logger.log("Add user: " + newUsers[i].name);
       if (newUsers[i].name && newUsers[i].name.length > 0) {
         mongo.upsert(users, {name:newUsers[i].name}, {state:USER_STATE_WAITING, date:new Date()}, function () {
         });
@@ -180,7 +182,7 @@ var startMatch = function (callback) {
           var match = docs[0];
           var date = new Date();
           mongo.upsert(matches, {_id:match._id}, {state:MATCH_STATE_ACTIVE, startDate:date}, function () {
-            console.log("Really start match");
+            logger.log("Really start match");
             callback({match:match, date:date});
             mongo.incrementCounter(counters, COUNTER_NAME_NUM_MATCHES);
           });
@@ -193,7 +195,7 @@ var startMatch = function (callback) {
 };
 
 var endMatch = function (callback) {
-  console.log("End match");
+  logger.log("End match");
   mongo.find(matches, {state:MATCH_STATE_ACTIVE}, {}).toArray(function (err, matchesArray) {
     if (matchesArray && matchesArray.length > 0) {
       var match = matchesArray[0];
@@ -225,7 +227,7 @@ var currentMatch = function (callback) {
 var getNumberOfPlayedMatches = function (callback) {
   mongo.find(counters, {name:COUNTER_NAME_NUM_MATCHES}, {}).toArray(function (err, result) {
     if (result && result.length > 0) {
-      console.log("# played matches: " + result[0].value)
+      logger.log("# played matches: " + result[0].value)
       callback(result[0].value);
     } else {
       callback();
@@ -250,7 +252,7 @@ exports.administration = function (cmd, callback) {
   } else if (cmd == "dropMatches") {
     mongo.remove(matches, {});
   } else {
-    console.warn("unknown cmd: " + cmd);
+    logger.warn("unknown cmd: " + cmd);
   }
   callback();
 };

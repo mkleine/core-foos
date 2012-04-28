@@ -2,24 +2,26 @@ var http = require('http');
 var socketIO = require('socket.io');
 var static = require('node-static');
 var repository = require('./core-foos-server');
+var logger = require('./lib/core-foos-util').createLogger('core-foos-socket');
 
 var config;
 try {
     config = JSON.parse(process.argv[2]);
 } catch (e) {
     config = {};
-    console.warn("cannot parse config: " + e);
-    console.log("falling back to default config");
+    logger.warn("cannot parse config: " + e);
+    logger.log("falling back to default config");
 }
-console.log("config:");
+logger.log("config:");
 console.dir(config);
 
 var clientFiles = new static.Server(config.dir ? config.dir : './client');
 repository.initialize(config);
 
-console.log("Ready to listen");
+logger.log("Ready to listen");
 
 var httpServer = http.createServer(function (request, response) {
+  logger.log('handling http request '+request.toString());
     request.addListener('end', function () {
         clientFiles.serve(request, response);
     });
@@ -27,7 +29,13 @@ var httpServer = http.createServer(function (request, response) {
 httpServer.listen(config.port ? config.port : 2000);
 
 var webSocket = socketIO.listen(httpServer);
-
+if(config.deployment == "heroku") {
+  webSocket.configure(function () {
+    // taken from https://devcenter.heroku.com/articles/using-socket-io-with-node-js-on-heroku
+    webSocket.set("transports", ["xhr-polling"]);
+    webSocket.set("polling duration", 10);
+  });
+}
 
 webSocket.on('connection', function (client) {
   client.emit("message", 'Welcome to Core Foo Kicker App');
@@ -35,9 +43,9 @@ webSocket.on('connection', function (client) {
     client.on('register', function (data) {
 
         repository.requestPlay(data, function (match) {
-            console.log("maybe start a match with " + JSON.stringify(match));
+            logger.log("maybe start a match with " + JSON.stringify(match));
             if (match) {
-                console.log("start match");
+                logger.log("start match");
                 client.broadcast.emit("start_match", match);
                 client.emit("start_match", match);
             }
@@ -84,7 +92,7 @@ webSocket.on('connection', function (client) {
     client.on('get_list_of_users', function () {
         repository.getListOfUsers(function (res) {
             client.emit('list_of_users', res);
-            console.log('LIST OF USERS:' + JSON.stringify(res));
+            logger.log('LIST OF USERS:' + JSON.stringify(res));
         });
         return;
     });
@@ -103,7 +111,7 @@ webSocket.on('connection', function (client) {
   });
   client.on('administration',
           function(cmd){
-            console.log("performing administrative command: "+ cmd);
+            logger.log("performing administrative command: "+ cmd);
             repository.administration(cmd,
                     function() {
                       if(cmd == 'dropMatches') {
@@ -126,7 +134,7 @@ webSocket.on('connection', function (client) {
   client.on('last_finished_match', function () {
     repository.lastFinishedMatch(function (match) {
       client.emit("last_finished_match", {lastFinishedMatch: match});
-      console.log('LAST FINISHED MATCH:' + JSON.stringify(match));
+      logger.log('LAST FINISHED MATCH:' + JSON.stringify(match));
     });
   });
 
