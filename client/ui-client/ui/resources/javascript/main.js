@@ -12,19 +12,10 @@ var webSocket;
 var testIndex = 2;
 var currentMatchId;
 
-var idleTimeInMinutes = 0;
-window.setInterval(
-        function(){
-          $("#timeValue").text(parseInt($("#timeValue").text(),10) + 1)
-        },
-        1000*60
-)
-
 // init
 $(function () {
   initServerConnection();
   checkTableState();
-  webSocket.emit('last_finished_match'); // trigger initialization of timer
 
   $("#statusView").text(statusFreeText);
   $("#queueSizeValue").text(queueSize);
@@ -300,18 +291,6 @@ function toggleBooking(bookFlag, players) {
   }
 }
 
-function updateTimer(date) {
-  console.log("updating timer with date "+date );
-  // TODO why do we get 'Invalid Date' here?
-  if(date && date != "Invalid Date") {
-    var now = new Date();
-    var idleTimeInMillis = now.getTime() - date.getTime();
-    idleTimeInMinutes = Math.round(idleTimeInMillis/60000);
-  }
-  $("#statusCounter").css('display', 'inline-block');
-  $("#timeValue").text(idleTimeInMinutes);
-}
-
 function receiveCurrentMatch(data) {
   if(data){
     console.log("Receiving current : "+ JSON.stringify(data));
@@ -357,4 +336,13 @@ function dropMatches() {
 
 function endCurrentMatch(){
   webSocket.emit("end_match", "");
+}
+
+function playAudio(audioId) {
+  var element = document.getElementById(audioId);
+  if(element && 'function' == typeof(element.play)){
+    element.play();
+  } else {
+    console.warn("cannot play audio for id "+audioId);
+  }
 }
