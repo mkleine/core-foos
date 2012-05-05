@@ -88,21 +88,6 @@ Some notes:
     <td>-</td>
   </tr>
   <tr>
-    <td>2.</td>
-    <td>
-      The <i>player</i> can check the kicker table's status.
-    </td>
-    <td>
-      The <i>kicker server</i> sends a message containing the corresponding table state.
-    </td>
-    <td>
-      <code>check_table_state</code>
-    </td>
-    <td>
-      <code>table_state</code>
-    </td>
-    <td>-</td>
-  </tr>
 </table>
 
 # WebSocket **server** message API (aka "what the server responds to")
@@ -119,11 +104,7 @@ Some notes:
     <th>Argument properties</th>
   </tr>
   <tr>
-    <td><code>check_table_state</code></td>
-    <td>-</td>
-  </tr>
-  <tr>
-    <td><code>register</code></td>
+    <td><code>register_match</code></td>
     <td><code>[{name:String}]</code></td>
   </tr>
   <tr>
@@ -144,19 +125,6 @@ Some notes:
   <tr>
     <th>Message</th>
     <th>Argument properties</th>
-  </tr>
-  <tr>
-    <td><code>table_state</code></td>
-    <td>
-      <dl>
-        <dt><code>occupied</code></dt>
-        <dd><code>true|false</code></dd>
-      </dl>
-      <dl>
-        <dt><code>count</code></dt>
-        <dd><code>int</code></dd>
-      </dl>
-    </td>
   </tr>
   <tr>
     <td><code>start_match</code></td>

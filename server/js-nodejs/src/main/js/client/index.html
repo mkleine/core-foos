@@ -48,15 +48,7 @@
   </p>
 
   <p>
-    <button id="getListOfUsers">List of users</button>
-  </p>
-
-  <p>
     <button id="currentMatchButton">Get current match</button>
-  </p>
-
-  <p>
-    <button id="lastFinishedMatch">Get last finished match</button>
   </p>
 
   <p>
@@ -108,13 +100,7 @@
       $('#players').append('<li>' + user + '</li>');
     });
 
-    webSocket.on('table_state', function (data) {
-      // $('#messages').append('<li>Is occupied?</li>');
-      $('#messages').append('<li>Is occupied=' + data.occupied + '</li>');
-    });
-
     webSocket.on('waiting_matches', function (data) {
-      // $('#messages').append('<li>Is occupied?</li>');
         alert('MATCHES:'+JSON.stringify(data));
         if (data)
             $('#messages').append('<li>There are currently ' + data.length + ' matches waiting</li>');
@@ -140,7 +126,7 @@
       // $('#messages').append('<li>Update list</li>');
     });
 
-    webSocket.on('current_match', function (match) {
+    webSocket.on('active_match', function (match) {
       if(match) {
         $('#currentMatch').val(match._id);
       }
@@ -157,35 +143,12 @@
       }
     });
 
-    webSocket.on('last_finished_match', function (match) {
-      console.log('match:' + match);
-      if(match) {
-        console.dir(match.lastFinishedMatch);
-        console.log("minites: " + new Date(match.lastFinishedMatch.endDate).getUTCMinutes());
-        $('#lastFinishedtMatch').val(match.lastFinishedMatch._id);
-      }
-    });
-
-
     $('#enterButton').bind('click', function () {
-      var user1 = $('#user1').val();
-      var user2 = $('#user2').val();
-      var user3 = $('#user3').val();
-      var user4 = $('#user4').val();
-      var users = new Array();
-      if (user1) {
-        users[0] = {name:user1};
-      }
-      if (user2) {
-        users[1] = {name:user2};
-      }
-      if (user3) {
-        users[2] = {name:user3};
-      }
-      if (user4) {
-        users[3] = {name:user4};
-      }
-      webSocket.emit("register", users);
+      const users = [$('#user1').val(),
+        $('#user2').val(),
+        $('#user3').val(),
+        $('#user4').val()];
+      webSocket.emit("register_match", users);
       $('#user1').val('');
       $('#user2').val('');
       $('#user3').val('');
@@ -197,7 +160,6 @@
       $('#user').val('');
     });
     $('#checkStateButton').bind('click', function () {
-      webSocket.emit("check_table_state");
       webSocket.emit("waiting_matches");
     });
     $('#endMatchButton').bind('click', function () {
@@ -206,14 +168,8 @@
       $('#currentMatch').val('');
     });
 
-    $('#getListOfUsers').bind('click', function () {
-      webSocket.emit("get_list_of_users");
-    });
     $('#currentMatchButton').bind('click', function () {
-      webSocket.emit("current_match");
-    });
-    $('#lastFinishedMatch').bind('click', function () {
-      webSocket.emit("last_finished_match");
+      webSocket.emit("active_match");
     });
     $('#numberOfPlayedMatchesButton').bind('click', function () {
       webSocket.emit("number_of_played_matches");

@@ -119,7 +119,7 @@ body {
   margin: 10px auto;
   padding: 8px 10px;
   border: 1px solid #eeeeee;
-  width: 750px;
+  width: 800px;
   text-align: left;
 
   -moz-border-radius: 10px;
@@ -220,10 +220,6 @@ body {
 
 .bookingButton.active {
   background: url(../images/sport_soccer_active.png);
-  cursor: pointer;
-}
-
-#dropUsers, #dropMatches {
   cursor: pointer;
 }
 

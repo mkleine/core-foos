@@ -1,30 +1,21 @@
-var http = require('http');
-var socketIO = require('socket.io');
-var static = require('node-static');
-var repository = require('./core-foos-server');
-var logger = require('./lib/core-foos-util').createLogger('core-foos-socket');
-
-var config;
-try {
-    config = JSON.parse(process.argv[2]);
-} catch (e) {
-    config = {};
-    logger.warn("cannot parse config: " + e);
-    logger.log("falling back to default config");
-}
-logger.log("config:");
-console.dir(config);
+const http = require('http');
+const socketIO = require('socket.io');
+const static = require('node-static');
+const repository = require('./core-foos-server');
+const util = require('./lib/core-foos-util');
+const config = util.parseConfig();
+var logger = util.createLogger('core-foos-socket');
 
 var clientFiles = new static.Server(config.dir ? config.dir : './client');
-repository.initialize(config);
+repository.initialize();
 
 logger.log("Ready to listen");
 
 var httpServer = http.createServer(function (request, response) {
   logger.log('handling http request '+request.toString());
-    request.addListener('end', function () {
-        clientFiles.serve(request, response);
-    });
+  request.addListener('end', function () {
+    clientFiles.serve(request, response);
+  });
 });
 httpServer.listen(config.port ? config.port : 2000);
 
@@ -38,133 +29,51 @@ if(config.deployment == "heroku") {
 }
 
 webSocket.on('connection', function (client) {
-  client.emit("message", 'Welcome to Core Foo Kicker App');
-  getCurrentMatch(client);
-    client.on('register', function (data) {
 
-        repository.requestPlay(data, function (match) {
-            logger.log("maybe start a match with " + JSON.stringify(match));
-            if (match) {
-                logger.log("start match");
-                client.broadcast.emit("start_match", match);
-                client.emit("start_match", match);
-            }
-            client.broadcast.emit('registration_complete');
-            client.emit('registration_complete');
+  repository.getActiveMatch(function(match){
+
+    repository.getWaitingMatches(function(matches){
+      client.emit('initial_state', {
+        // TODO use registration/login instead of generating new user names
+        user_name : 'player-' + new Date().getTime(),
+        active_match : match,
+        waiting_matches : matches
+      });
+    });
+  });
+
+  function updateState(callback, upsertMatch, removeMatch){
+    const newState = {upsert : upsertMatch, remove: removeMatch};
+    console.log('broadcasting state update: ' + JSON.stringify(newState));
+    client.broadcast.emit('update_state',newState);
+    callback(newState);
+  }
+
+  client.on('register_match', function (data, callback) {
+    repository.requestMatch(data, function (match) {
+      if (match) {
+        logger.log("starting new match: "+JSON.stringify(match));
+      }
+      updateState(callback,match);
+    });
+  });
+
+  client.on('end_match', function (data, callback) {
+    logger.log('receiving "end_match" for ' + JSON.stringify(data) + " with "+callback);
+
+    repository.endMatch(data,function (finishedMatch) {
+      logger.log("ended match: "+JSON.stringify(finishedMatch));
+
+      if (finishedMatch) {
+        repository.startMatch(function(startedMatch){
+          logger.log("starting match: "+ JSON.stringify(startedMatch));
+          updateState(callback, startedMatch, finishedMatch);
         });
-        return;
-    });
-
-    client.on('leave', function (user) {
-        repository.cancelPlay(user);
-        client.emit("message", user + ' has left the building.');
-        client.broadcast.emit("leave", user);
-        client.emit("leave", user);
-        return;
-    });
-
-    client.on('check_table_state', function () {
-        getTableState(client);
-        return;
-    });
-
-  client.on('current_match', function() {
-    getCurrentMatch(client);
-  });
-
-
-  client.on('number_of_played_matches', function() {
-    getNumberOfPlayedMatches(client);
-  });
-
-  client.on('end_match', function (match) {
-        repository.endMatch(function (match) {
-            if (match) {
-              client.broadcast.emit("end_match", match);
-              client.broadcast.emit("start_match", match);
-                client.emit("end_match", match);
-                client.emit("start_match", match);
-            }
-        });
-        return;
-    });
-
-    client.on('get_list_of_users', function () {
-        repository.getListOfUsers(function (res) {
-            client.emit('list_of_users', res);
-            logger.log('LIST OF USERS:' + JSON.stringify(res));
-        });
-        return;
-    });
-
-  client.on('waiting_matches', function () {
-      /*
-    repository.getNumberOfMatches(function (res) {
-      client.emit('waiting_matches', res);
-    });
-    */
-      repository.getListOfMatches(function (res) {
-           client.emit('waiting_matches', res);
-         });
-
-    return;
-  });
-  client.on('administration',
-          function(cmd){
-            logger.log("performing administrative command: "+ cmd);
-            repository.administration(cmd,
-                    function() {
-                      if(cmd == 'dropMatches') {
-                        client.emit("table_state", {occupied:false});
-                        client.broadcast.emit("table_state", {occupied:false});
-                        client.emit('current_match', {});
-                        client.broadcast.emit('current_match', {});
-                        repository.lastFinishedMatch(function (match) {
-                          var result = {lastFinishedMatch: match};
-                          client.emit("last_finished_match", result);
-                          client.broadcast.emit("last_finished_match", result);
-                        });
-                      }
-                      client.emit('administration',cmd);
-                    }
-            )
-          }
-  );
-
-  client.on('last_finished_match', function () {
-    repository.lastFinishedMatch(function (match) {
-      client.emit("last_finished_match", {lastFinishedMatch: match});
-      logger.log('LAST FINISHED MATCH:' + JSON.stringify(match));
+      } else {
+        console.log("couldn't finish match "+JSON.stringify(data));
+        callback();
+      }
     });
   });
-
 
 });
-
-function getCurrentMatch(client) {
-  repository.currentMatch(function (match) {
-    if(!match) {
-      match = {date:new Date()};
-    }
-    client.emit('current_match', match);
-  });
-}
-
-function getNumberOfPlayedMatches(client) {
-  repository.getNumberOfPlayedMatches(function (number) {
-    client.emit('number_of_played_matches', number);
-  });
-}
-
-function getTableState(client) {
-    repository.getNumberOfActiveMatches(function (count) {
-            if (count == 0) {
-                client.broadcast.emit("table_state", {occupied:false});
-                client.emit("table_state", {occupied:false});
-            } else {
-                client.broadcast.emit("table_state", {occupied:true});
-                client.emit("table_state", {occupied:true});
-            }
-        }
-    );
-}

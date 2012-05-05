@@ -6,131 +6,149 @@ var statusFreeText = "frei";
 var statusOccupiedText = "besetzt";
 var statusWaitingText = "wartend";
 
-var occupied = false;
-var queueSize = 0;
-var webSocket;
-var testIndex = 2;
-var currentMatchId;
+const model = Object.create(null);
 
 // init
 $(function () {
-  initServerConnection();
-  checkTableState();
-
   $("#statusView").text(statusFreeText);
-  $("#queueSizeValue").text(queueSize);
-  $("#dropUsers").text('dropUsers');
-  $("#dropUsers").click(dropUsers);
-  $("#dropMatches").text('dropMatches');
-  $("#dropMatches").click(dropMatches);
+  $("#queueSizeValue").text(0);
   $("#statusCounter").css('display', 'none');
-//  initStatusView(QUEUE_SIZE);
-  refreshQueueSize();
+
+  coreFoosClient.registerHandler(EVENT_INITIAL_STATE, receiveInitialState);
+
+  coreFoosClient.registerHandler(EVENT_UPDATE_STATE, updateMatches);
+
   initUi();
 });
 
-function initServerConnection() {
-  var url = location.href; // TODO maybe alter protocol and cut off path ?
-  webSocket = io.connect(url);
-  webSocket.on('connect', function () {
-    console.log('Connected to: ' + url);
+function receiveInitialState(data){
+  model.userName = data.user_name;
+  model.activeMatch = data.active_match;
+  model.waitingMatches = data.waiting_matches;
+
+  updateActiveMatchContainer();
+
+  var matches = model.waitingMatches || [];
+  console.log("received waiting matches: "+JSON.stringify(matches));
+  $.each(matches,function(index,match){
+    addReadOnlyQueueEntry(match._id, [match.player1, match.player2, match.player3, match.player4], match.requestDate);
   });
 
-  webSocket.on('last_finished_match',
-          function (data) {
-            console.log('last_finished_match' + JSON.stringify(data));
-            var endDate = new Date(data.lastFinishedMatch.endDate);
-            console.log(endDate);
-            updateTimer(endDate);
-          }
-  );
+  updateStatusView();
+}
 
-  webSocket.on('current_match',
-    receiveCurrentMatch
-  );
-
-  webSocket.on('table_state', function (data) {
-    setOccupied(data.occupied);
-    initStatusView(getQueueSize(), getOccupied());
-  });
-
-  webSocket.on('start_match', function (data) {
-    console.log("Start match with " + JSON.stringify(data));
-    checkTableState();
-    if(data.match && data.match.state) {
-      addCurrentMatchQueueEntry(0,[data.match.player1, data.match.player2, data.match.player3, data.match.player4], data.match.requestDate);
+function updateMatches(data){
+  if(data && data.upsert){
+    const match = data.upsert;
+    console.log('applying changes to match '+JSON.stringify(match));
+    if(match.startDate){
+      // upserting active match
+      updateActiveMatch(match);
+    } else {
+      // upserting waiting match
+      addReadOnlyQueueEntry(match._id, [match.player1, match.player2, match.player3, match.player4], match.requestDate);
     }
-  });
+  }
 
-  webSocket.on('end_match', function (data) {
+  const toRemove = data.remove;
+  if(toRemove){
+    console.log('removing match '+JSON.stringify(toRemove));
+    model.waitingMatches = model.waitingMatches.filter(function(match){
+      return match._id != toRemove._id;
+    });
+    $("#queueEntry_"+toRemove._id).fadeOut(500, function() {
+      $(this).remove();
+    });
+  }
+
+  updateStatusView();
+}
+
+function updateActiveMatch(started){
+  if(started) {
+    if(model.activeMatch) {
+      const oldId = model.activeMatch._id;
+      model.activeMatch = started;
+      console.dir("removing old active match: " + oldId);
+      $("#currentMatch_"+oldId).fadeOut(500, function() {
+        $(this).remove();
+        updateActiveMatchContainer();
+      });
+    } else {
+      model.activeMatch = started;
+      updateActiveMatchContainer();
+    }
+  }
+}
+
+function updateActiveMatchContainer(){
+  var match = model.activeMatch;
+  if(match){
+
+    updateTimer(new Date(match.startDate));
+
+    const players = [match.player1, match.player2, match.player3, match.player4];
+
     $("#currentMatchContainer").empty();
-//    console.log("End match with " + JSON.stringify(data));
-    checkTableState();
-  });
+    const currentMatchId = 'currentMatch_' + match._id;
+    $('<div id="' + currentMatchId + '" class="queueEntry"></div>').appendTo('#currentMatchContainer');
 
-  webSocket.on('waiting_matches', function (data) {
-    testIndex = 2;
-    setQueueSize(data.length);
-    showQueueList(data);
-    initStatusView(getQueueSize(), getOccupied());
-  });
+    const currentMatchSelector = '#' + currentMatchId;
+    $('<div class="queueRemoveEntryButton"></div>').appendTo(currentMatchSelector);
 
-  webSocket.on('registration_complete', function (data) {
-    webSocket.emit("waiting_matches");
-    console.log("registering match " + JSON.stringify(data));
-  });
 
-  webSocket.on('current_match', function (match) {
-    console.log("current match :" + JSON.stringify(match));
-    receiveCurrentMatch();
-    if(match && match.state) {
-      currentMatchId = match._id;
-      addCurrentMatchQueueEntry(0,[match.player1, match.player2, match.player3, match.player4], match.requestDate);
-    }
-  });
+    players.every(function(val,index){
+      addPlayerContainer(index + 1, currentMatchSelector, val);
+      return true;
+    });
+
+    dateAndTimeString = createDateTimeString('gestartet', match.startDate);
+    $('<div class="queueDateContainer">'+dateAndTimeString+'</div>').appendTo(currentMatchSelector);
+
+    $("#currentMatchContainer .queueRemoveEntryButton").click(createRemoveMatchHandler(match._id));
+
+    checkCurrentPlayerActive(players);
+
+  } else {
+    console.warn('cannot add active match from '+JSON.stringify(match));
+  }
 }
 
-function showQueueList(matches) {
-
-  $("#queueContainer").empty();
-  matches.forEach(function (item) {
-    addReadOnlyQueueEntry(testIndex, [item.player1, item.player2, item.player3, item.player4], item.requestDate);
-    testIndex++;
-  });
+function createDateTimeString(prefixString, rawDateString){
+  var date = new Date(rawDateString);
+  var dateAndTimeString = prefixString + ' ';
+  if(date.getDate() != new Date().getDate()) {
+    dateAndTimeString += 'am '+date.getDate()+'.'+(date.getMonth()+1) + ' ';
+  }
+  dateAndTimeString += 'um '+ date.toLocaleTimeString().substring(0,5);
+  return dateAndTimeString;
 }
 
-
-function addCurrentMatchQueueEntry(number, playerArray, createDate) {
-  $("#currentMatchContainer").empty();
-  $('<div id="currentMatch_' + number + '" class="queueEntry"></div>').appendTo('#currentMatchContainer');
-  $('<div class="queueRemoveEntryButton"></div>').appendTo('#currentMatch_' + number);
-
-  addPlayerContainer(1, '#currentMatch_' + number, playerArray[0]);
-  addPlayerContainer(2, '#currentMatch_' + number, playerArray[1]);
-  addPlayerContainer(3, '#currentMatch_' + number, playerArray[2]);
-  addPlayerContainer(4, '#currentMatch_' + number, playerArray[3]);
-
-  var a =  new Date(createDate).getHours() +":"+new Date(createDate).getMinutes();
-  $('<div class="queueDateContainer">erstellt um '+ a+'</div>').appendTo('#currentMatch_' + number);
-
-  var currentMatchRemoveContainer = $("#currentMatchContainer .queueRemoveEntryButton");
-  currentMatchRemoveContainer.click(function() {
-    endCurrentMatch();
-  });
+function createRemoveMatchHandler(matchId){
+  return function(e){
+    console.log('remove match from queue button clicked: ' + matchId);
+    coreFoosClient.endMatch(matchId, function(data){
+      console.log("match "+ matchId + " removed: " + JSON.stringify(data));
+      updateMatches(data);
+    });
+  }
 }
 
+function addReadOnlyQueueEntry(matchId, playerArray, createDate) {
+  const queueEntryId = "queueEntry_"+matchId;
+  const queueEntrySelector = "#" + queueEntryId;
+  $('<div id="' + queueEntryId + '" class="queueEntry"></div>').appendTo('#queueContainer');
+  $('<div class="queueRemoveEntryButton"></div>').appendTo(queueEntrySelector);
 
-function addReadOnlyQueueEntry(number, playerArray, createDate) {
-  $('<div id="queueEntry_' + number + '" class="queueEntry"></div>').appendTo('#queueContainer');
-  $('<div class="queueRemoveEntryButton"></div>').appendTo('#queueEntry_' + number);
+  $(queueEntrySelector + " .queueRemoveEntryButton").click(createRemoveMatchHandler(matchId));
 
-  addPlayerContainer(1, '#queueEntry_' + number, playerArray[0]);
-  addPlayerContainer(2, '#queueEntry_' + number, playerArray[1]);
-  addPlayerContainer(3, '#queueEntry_' + number, playerArray[2]);
-  addPlayerContainer(4, '#queueEntry_' + number, playerArray[3]);
+  addPlayerContainer(1, queueEntrySelector, playerArray[0]);
+  addPlayerContainer(2, queueEntrySelector, playerArray[1]);
+  addPlayerContainer(3, queueEntrySelector, playerArray[2]);
+  addPlayerContainer(4, queueEntrySelector, playerArray[3]);
 
-  var a =  new Date(createDate).getHours() +":"+new Date(createDate).getMinutes();
-  $('<div class="queueDateContainer">erstellt um '+ a+'</div>').appendTo('#queueEntry_' + number);
+  var a = createDateTimeString('erstellt',createDate);
+  $('<div class="queueDateContainer">' + a + '</div>').appendTo(queueEntrySelector);
 }
 
 function addPlayerContainer(playerNumber, rootQueueEntryContainerId, playerName) {
@@ -142,22 +160,22 @@ function addPlayerContainer(playerNumber, rootQueueEntryContainerId, playerName)
 }
 
 function initUi() {
-  var queueAddEntryButton = $("#queueCreationContainer .queueAddEntryButton");
-//  var queueRemoveEntryButton = $("#queueContainer .queueRemoveEntryButton");
-  var queuePlayer1Image = $("#queueEntry_creation .queuePlayerContainer.1Player .queuePlayerImage");
-  var queuePlayer2Image = $("#queueEntry_creation .queuePlayerContainer.2Player .queuePlayerImage");
-  var queuePlayer3Image = $("#queueEntry_creation .queuePlayerContainer.3Player .queuePlayerImage");
-  var queuePlayer4Image = $("#queueEntry_creation .queuePlayerContainer.4Player .queuePlayerImage");
+  const queueAddEntryButton = $("#queueCreationContainer .queueAddEntryButton");
+  const images = [
+    $("#queueEntry_creation .queuePlayerContainer.1Player .queuePlayerImage"),
+    $("#queueEntry_creation .queuePlayerContainer.2Player .queuePlayerImage"),
+    $("#queueEntry_creation .queuePlayerContainer.3Player .queuePlayerImage"),
+    $("#queueEntry_creation .queuePlayerContainer.4Player .queuePlayerImage")
+  ];
 
+  const inputs = [
+    $("#queueEntry_creation .queuePlayerContainer.1Player .queuePlayerName input"),
+    $("#queueEntry_creation .queuePlayerContainer.2Player .queuePlayerName input"),
+    $("#queueEntry_creation .queuePlayerContainer.3Player .queuePlayerName input"),
+    $("#queueEntry_creation .queuePlayerContainer.4Player .queuePlayerName input")
+  ];
 
-  var queuePlayer1Name = $("#queueEntry_creation .queuePlayerContainer.1Player .queuePlayerName input");
-  var queuePlayer2Name = $("#queueEntry_creation .queuePlayerContainer.2Player .queuePlayerName input");
-  var queuePlayer3Name = $("#queueEntry_creation .queuePlayerContainer.3Player .queuePlayerName input");
-  var queuePlayer4Name = $("#queueEntry_creation .queuePlayerContainer.4Player .queuePlayerName input");
-
-
-
-  var queueBookingButton = $("#queueEntry_creation .bookingButton");
+  const queueBookingButton = $("#queueEntry_creation .bookingButton");
 
   // toggle buttons hover
   queueAddEntryButton.hover(function () {
@@ -170,47 +188,44 @@ function initUi() {
     $("#queueEntry_creation").attr("class", "queueEntry");
   });
 
-
-  /*
-   queueRemoveEntryButton.hover(function () {
-   queueRemoveEntryButton.toggleClass("active");
-   }
-   );
-   */
-
-  togglePlayerImage(queuePlayer1Image, queuePlayer1Name);
-  togglePlayerImage(queuePlayer2Image, queuePlayer2Name);
-  togglePlayerImage(queuePlayer3Image, queuePlayer3Name);
-  togglePlayerImage(queuePlayer4Image, queuePlayer4Name);
-
+  images.every(function(val,index){
+    togglePlayerImage(val,inputs[index]);
+    return true;
+  });
 
   // add booking button click function
   queueBookingButton.click(function () {
-    var players = [
-      { name:queuePlayer1Name.val()},
-      { name:queuePlayer2Name.val()},
-      { name:queuePlayer3Name.val()},
-      { name:queuePlayer4Name.val()}
-    ];
-    var filteredPlayers = new Array();
-    for (var i = 0; i < players.length; i++) {
-      if (players[i].name && players[i].name.length > 0) {
-        filteredPlayers.push(players[i]);
+    const filteredPlayers = [];
+    inputs.every(function(name){
+      const val = name.val();
+      if(val && val.length > 0){
+        filteredPlayers.push(val);
       }
-    }
-    toggleBooking(true, filteredPlayers);
+      return true;
+    });
+    coreFoosClient.registerMatch(filteredPlayers, function(data){
+      resetMatchCreationContainer(images, inputs);
+      updateMatches(data);
+    });
 
-    $("#queueCreationEntry").attr("class", "queueEntry ");
-    $("#queueEntry_creation").attr("class", "queueEntry invisible");
-    queuePlayer1Name.val("");
-    queuePlayer2Name.val("");
-    queuePlayer3Name.val("");
-    queuePlayer4Name.val("");
+  });
+}
 
-    queuePlayer1Image.attr("class", "queuePlayerImage");
-    queuePlayer2Image.attr("class", "queuePlayerImage");
-    queuePlayer3Image.attr("class", "queuePlayerImage");
-    queuePlayer4Image.attr("class", "queuePlayerImage");
+function checkCurrentPlayerActive(players){
+  if(players && players.indexOf(model.userName) > -1) {
+    playAudio("rooster");
+    alert("it's your turn!");
+  }
+}
+
+function resetMatchCreationContainer(images, inputs){
+  $("#queueCreationEntry").attr("class", "queueEntry ");
+  $("#queueEntry_creation").attr("class", "queueEntry invisible");
+
+  images.every(function(val,index){
+    val.attr("class", "queuePlayerImage");
+    inputs[index].val("");
+    return true;
   });
 }
 
@@ -223,7 +238,7 @@ function togglePlayerImage(playerImageContainer, playerInputContainer) {
   playerImageContainer.click(function () {
     playerImageContainer.attr("class", "queuePlayerImage active");
     if (playerInputContainer.val() == "") {
-      playerInputContainer.val("player");
+      playerInputContainer.val(model.userName);
     }
     checkPlayerText();
   });
@@ -253,89 +268,17 @@ function checkPlayerText() {
     queueBookingButton.attr("class", "bookingButton active");
   }
 }
-function initStatusView(queueSize, isTableOccupied) {
+function updateStatusView() {
+  const queueSize = model.waitingMatches.length;
+  const isTableOccupied = model.activeMatch != null;
 
+  const cls = isTableOccupied ? 'statusOccupied' : (queueSize == 0 ? 'statusFree' : 'statusWaiting');
+  $("#statusView").attr('class', cls);
 
-  if (getQueueSize() == 0 && !isTableOccupied) {
-    $("#statusView").attr('class', "statusFree");
-    $("#statusView").text(statusFreeText);
-  }
-  else if (getQueueSize() == 0 && isTableOccupied) {
-    $("#statusView").attr('class', "statusOccupied");
-    $("#statusView").text(statusOccupiedText);
-  }
-  else if (getQueueSize() >= 1 && !isTableOccupied) {
-    $("#statusView").attr('class', "statusWaiting");
-    $("#statusView").text(statusWaitingText);
-  }
-  else if (getQueueSize() >= 1 && isTableOccupied) {
-    $("#statusView").attr('class', "statusOccupied");
-    $("#statusView").text(statusOccupiedText);
-  }
+  const txt = isTableOccupied ? statusOccupiedText : (queueSize == 0 ? statusFreeText : statusWaitingText);
+  $("#statusView").text(txt);
 
-  $("#queueSizeValue").text(getQueueSize());
-}
-
-function toggleBooking(bookFlag, players) {
-  if (bookFlag) {
-    webSocket.emit("register", players);
-    checkTableState();
-  }
-  else {
-    removeFromQueue();
-    if (queueSize == 0) {
-      $("#statusView").text(statusFreeText);
-      $("#statusView").attr('class', "statusFree");
-    }
-
-  }
-}
-
-function receiveCurrentMatch(data) {
-  if(data){
-    console.log("Receiving current : "+ JSON.stringify(data));
-    updateTimer(new Date(data.startDate));
-  } else {
-    // this is actually an error
-    console.warn("Current match is " + data);
-  }
-}
-
-function refreshQueueSize() {
-  $("#queueSizeValue").text(getQueueSize());
-}
-
-function setQueueSize(queueSizeVal) {
-  queueSize = queueSizeVal;
-}
-
-function getQueueSize() {
-  return queueSize;
-}
-
-function setOccupied(flag) {
-  occupied = flag;
-}
-
-function getOccupied() {
-  return occupied;
-}
-
-function checkTableState() {
-  webSocket.emit("check_table_state");
-  webSocket.emit("waiting_matches");
-}
-
-function dropUsers() {
-  webSocket.emit("administration", "dropUsers");
-}
-
-function dropMatches() {
-  webSocket.emit("administration", "dropMatches");
-}
-
-function endCurrentMatch(){
-  webSocket.emit("end_match", "");
+  $("#queueSizeValue").text(model.waitingMatches.length);
 }
 
 function playAudio(audioId) {
