@@ -38,44 +38,87 @@ function receiveInitialState(data){
 }
 
 function updateMatches(data){
-  if(data && data.upsert){
-    const match = data.upsert;
-    console.log('applying changes to match '+JSON.stringify(match));
-    if(match.startDate){
-      // upserting active match
-      updateActiveMatch(match);
+  if(data){
+    if(data.upsert){
+      const match = data.upsert;
+      console.log('applying changes to match '+JSON.stringify(match));
+      if(match.startDate){
+        // upserting active match
+        updateActiveMatch(match);
+      } else {
+        // upserting waiting match
+        model.waitingMatches.push(match);
+        addReadOnlyQueueEntry(match._id, [match.player1, match.player2, match.player3, match.player4], match.requestDate);
+      }
+    }
+
+    removeMatch(data.remove);
+
+    updateStatusView();
+
+  } else {
+    console.warn("ignoring empty state update");
+  }
+}
+
+function removeMatch(toRemove){
+  if(toRemove){
+    if(model.activeMatch && model.activeMatch._id == toRemove._id) {
+       if(model.waitingMatches.length > 0){
+         throw new Error('illegal state: cannot remove active match when there are still waiting matches. Use upsert instead!');
+       }
+
+      console.log("removing active match ",toRemove);
+      model.activeMatch = null;
+      $("#currentMatch_"+toRemove._id).fadeOut(500, function() {
+        $(this).remove();
+      });
+
     } else {
-      // upserting waiting match
-      addReadOnlyQueueEntry(match._id, [match.player1, match.player2, match.player3, match.player4], match.requestDate);
+      removeWaitingMatch(toRemove);
     }
   }
+}
 
-  const toRemove = data.remove;
+function removeWaitingMatch(toRemove){
   if(toRemove){
-    console.log('removing match '+JSON.stringify(toRemove));
+    const oldLength = model.waitingMatches.length;
     model.waitingMatches = model.waitingMatches.filter(function(match){
       return match._id != toRemove._id;
     });
-    $("#queueEntry_"+toRemove._id).fadeOut(500, function() {
-      $(this).remove();
-    });
+    if(oldLength > model.waitingMatches.length){
+      console.log('removing match from queue: ' + JSON.stringify(toRemove));
+      $("#queueEntry_"+toRemove._id).fadeOut(500, function() {
+        $(this).remove();
+      });
+    }
   }
-
-  updateStatusView();
 }
 
 function updateActiveMatch(started){
   if(started) {
+    var updateLater = false;
+    removeWaitingMatch(started);
     if(model.activeMatch) {
       const oldId = model.activeMatch._id;
+      const oldMatchEntry = $("#currentMatch_"+oldId);
       model.activeMatch = started;
-      console.dir("removing old active match: " + oldId);
-      $("#currentMatch_"+oldId).fadeOut(500, function() {
-        $(this).remove();
-        updateActiveMatchContainer();
-      });
-    } else {
-      model.activeMatch = started;
+
+      if(oldMatchEntry.length > 0){
+
+        updateLater = true;
+        console.info("removing old active match: " + oldId);
+        oldMatchEntry.fadeOut(500, function() {
+          $(this).remove();
+          updateActiveMatchContainer();
+        });
+      } else {
+        console.warn("INCONSITENT STATE: active match was set but not rendered");
+      }
+    }
+
+    model.activeMatch = started;
+    if(!updateLater){
       updateActiveMatchContainer();
     }
   }
@@ -84,6 +127,7 @@ function updateActiveMatch(started){
 function updateActiveMatchContainer(){
   var match = model.activeMatch;
   if(match){
+    console.log('updating container for active match: '+JSON.stringify(match));
 
     updateTimer(new Date(match.startDate));
 
@@ -109,8 +153,6 @@ function updateActiveMatchContainer(){
 
     checkCurrentPlayerActive(players);
 
-  } else {
-    console.warn('cannot add active match from '+JSON.stringify(match));
   }
 }
 
@@ -214,7 +256,7 @@ function initUi() {
 function checkCurrentPlayerActive(players){
   if(players && players.indexOf(model.userName) > -1) {
     playAudio("rooster");
-    alert("it's your turn!");
+    alert("Kickern, jetzt!");
   }
 }
 
