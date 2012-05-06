@@ -5,11 +5,6 @@ const logger = util.createLogger('core-foos-server');
 var users;
 var matches;
 
-const USER_STATE_MATCH_REQUESTED = "MATCH_REQUESTED";
-const USER_STATE_WAITING = "WAITING";
-const USER_STATE_FINISHED = "FINISHED";
-const USER_STATE_CANCELLED = "CANCELLED";
-
 const MATCH_STATE_FINISHED = "FINISHED";
 const MATCH_STATE_WAITING = "WAITING";
 const MATCH_STATE_ACTIVE = "ACTIVE";
@@ -47,7 +42,7 @@ var generateTestData = function () {
   ], callback);
 
   getListOfUsers(function (users) {
-    logger.log("Num users: " + users.length);
+    logger.log("users: " + JSON.stringify(users) + " / length: " + users.length);
     cancelPlay('xyz');
     getListOfUsers(function (users) {
       logger.log("Num users: " + users.length);
@@ -66,19 +61,18 @@ var generateTestData = function () {
 };
 
 var getListOfUsers = function (callback) {
-  logger.log("Get list of users");
-  mongo.find(users, {state:USER_STATE_WAITING}, {}).sort('date', 1).limit(50).toArray(function (err, docs) {
+  logger.log("Get list of waiting users");
+  // type Date => 9 http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries-%24type
+  mongo.find(users, {requestDate : {$type : 9}}, {}).sort('requestDate', 1).limit(50).toArray(function (err, docs) {
     callback(docs);
   });
 };
 
-var getListOfMatches = function (callback) {
-  logger.log("Get list of matches");
-  return mongo.find(matches, {state:MATCH_STATE_WAITING}, {}).sort('date', 1).limit(50).toArray(function (err, docs) {
-    callback(docs);
-  });
-};
-
+/**
+ * Request match for the given array of user names
+ * @param newUsers
+ * @param callback
+ */
 var requestMatch = function (newUsers, callback) {
   logger.log("Got users: " + JSON.stringify(newUsers) + ", adding " + newUsers.length + " users");
   if (newUsers.length == 4) {
@@ -100,35 +94,43 @@ var requestMatch = function (newUsers, callback) {
       });
     });
   } else {
-    for (i = 0; i < (newUsers.length - 1); i++) {
-      logger.log("Add user: " + newUsers[i].name);
-      if (newUsers[i].name && newUsers[i].name.length > 0) {
-        mongo.upsert(users, {name:newUsers[i].name}, {state:USER_STATE_WAITING, date:new Date()}, function () {
-        });
-      }
-    }
-    if (newUsers[newUsers.length - 1].name && newUsers[newUsers.length - 1].name.length > 0) {
-      mongo.upsert(users, {name:newUsers[newUsers.length - 1].name}, {state:USER_STATE_WAITING, date:new Date()}, function () {
-          matchPlayers(callback);
-      });
-    }
+    const now = new Date();
+    newUsers.every(function(user){
+      mongo.upsert(users, {name:user}, {requestDate:now}, function () {});
+      return true;
+    });
+    matchPlayers(callback);
   }
 };
 
 var matchPlayers = function (callback) {
-  getListOfUsers(function (users) {
-    if (users.length >= 4) {
-      // TODO reset waiting flags of users
-      requestMatch([users[0].name, users[1].name, users[2].name, users[3].name], callback);
+  getListOfUsers(function (waitingUsers) {
+    if (waitingUsers && waitingUsers.length >= 4) {
+
+      // TODO avoid recursion!
+      requestMatch([waitingUsers[0].name, waitingUsers[1].name, waitingUsers[2].name, waitingUsers[3].name], function(match){
+
+        waitingUsers.every(function(user,index){
+          logger.log('matching user: ' + user.name);
+          mongo.update(users, {name:user.name}, {requestDate:null}, function () {});
+          return index < 3; // stop after 4th user
+        });
+
+        callback(match);
+      });
     }
   });
 };
 
 var cancelPlay = function (userName) {
-  mongo.update(users, {name:userName}, {name:userName, state:USER_STATE_CANCELLED}, function () {
+  mongo.update(users, {name:userName}, {name:userName, requestDate:null}, function () {
   });
 };
 
+/**
+ * Start one of the waiting matches, if any
+ * @param callback
+ */
 var startMatch = function (callback) {
   exports.getActiveMatch(function(activeMatch){
     if(activeMatch) {
@@ -138,7 +140,7 @@ var startMatch = function (callback) {
 
     } else {
 
-      getListOfMatches(function (docs) {
+      exports.getWaitingMatches(function (docs) {
 
         if (docs && docs.length > 0) {
           var match = docs[0];
@@ -190,7 +192,6 @@ exports.cancelPlay = cancelPlay;
 exports.endMatch = endMatch;
 exports.startMatch = startMatch;
 exports.initialize = initialize;
-exports.getListOfMatches = getListOfMatches;
 exports.getActiveMatch = function(callback) {
   mongo.find(matches, {state:MATCH_STATE_ACTIVE}, {}).toArray(function (err, result) {
     if(err) {

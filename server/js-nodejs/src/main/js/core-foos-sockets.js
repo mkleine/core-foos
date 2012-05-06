@@ -33,11 +33,16 @@ webSocket.on('connection', function (client) {
   repository.getActiveMatch(function(match){
 
     repository.getWaitingMatches(function(matches){
-      client.emit('initial_state', {
-        // TODO use registration/login instead of generating new user names
-        user_name : 'player-' + new Date().getTime(),
-        active_match : match,
-        waiting_matches : matches
+
+      repository.getListOfUsers(function(users) {
+
+        client.emit('initial_state', {
+          // TODO use registration/login instead of generating new user names
+          user_name : 'player-' + new Date().getTime(),
+          active_match : match,
+          waiting_matches : matches,
+          waiting_players : users // TODO also update waiting players
+        });
       });
     });
   });

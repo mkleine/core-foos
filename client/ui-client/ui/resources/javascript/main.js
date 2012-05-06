@@ -28,6 +28,7 @@ function receiveInitialState(data){
   }
   model.activeMatch = data.active_match;
   model.waitingMatches = data.waiting_matches;
+  model.waitingPlayers = data.waiting_players;
 
   updateActiveMatchContainer();
 
@@ -324,6 +325,7 @@ function updateStatusView() {
   $("#statusView").text(txt);
 
   $("#queueSizeValue").text(model.waitingMatches.length);
+  $("#playersQueueSizeValue").text(model.waitingPlayers.length);
 }
 
 function playAudio(audioId) {
