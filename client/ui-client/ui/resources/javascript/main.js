@@ -22,7 +22,10 @@ $(function () {
 });
 
 function receiveInitialState(data){
-  model.userName = data.user_name;
+  model.userName = window.prompt('Gib Deinen Namen ein:', data.user_name);
+  if(!model.userName) {
+    model.userName = data.user_name;
+  }
   model.activeMatch = data.active_match;
   model.waitingMatches = data.waiting_matches;
 
