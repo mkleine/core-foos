@@ -140,10 +140,7 @@ var startMatch = function (callback) {
 
       getListOfMatches(function (docs) {
 
-        if(!docs) {
-          logger.warn("There's no match to start");
-          callback();
-        } else if (docs.length > 0) {
+        if (docs && docs.length > 0) {
           var match = docs[0];
           var date = new Date();
           mongo.upsert(matches, {_id:match._id}, {state:MATCH_STATE_ACTIVE, startDate:date}, function () {
@@ -151,6 +148,9 @@ var startMatch = function (callback) {
             match.startDate = date;
             callback(match);
           });
+        } else {
+          logger.warn("There's no match to start");
+          callback();
         }
 
       });
