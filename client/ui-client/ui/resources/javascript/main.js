@@ -11,7 +11,6 @@ const model = Object.create(null);
 // init
 $(function () {
   $("#statusView").text(statusFreeText);
-  $("#queueSizeValue").text(0);
   $("#statusCounter").css('display', 'none');
 
   coreFoosClient.registerHandler(EVENT_INITIAL_STATE, receiveInitialState);
