@@ -106,6 +106,7 @@ function removeMatch(toRemove){
       model.activeMatch = null;
       $("#currentMatch_"+toRemove._id).fadeOut(500, function() {
         $(this).remove();
+        updateTimer(new Date());
       });
 
     } else {
@@ -276,9 +277,7 @@ function initUi() {
   });
 
   $("#quickRequestCompleteMatch").text("Wir sind komplett!").click(function(){
-    if(model.waitingMatches.concat(model.activeMatch).every(function(match){
-      return (match.player1 != model.userName && match.player2 != model.userName && match.player3 != model.userName && match.player4 != model.userName);
-    })) {
+    if(mayRequestMatch()) {
       coreFoosClient.registerMatch([model.userName, model.userName, model.userName, model.userName], updateClientState);
     } else {
       console.info("already registered");
@@ -286,9 +285,7 @@ function initUi() {
   });
 
   $("#quickRequestMatch").text("Ich will spielen!").click(function(){
-    if(model.waitingPlayers.every(function(player){
-      return player.name != model.userName;
-    })) {
+    if(mayRequestMatch()) {
       coreFoosClient.registerMatch([model.userName], updateClientState);
     } else {
       console.log('already registered!');
@@ -311,7 +308,19 @@ function initUi() {
     });
 
   });
+}
 
+/**
+ * The current User may request a match only if he's not listed in any request queue or currently active
+ * @return {Boolean}
+ */
+function mayRequestMatch() {
+  return model.waitingPlayers.every(function(player){
+    return player.name != model.userName;
+  }) &&
+          model.waitingMatches.concat(model.activeMatch).every(function(match){
+            return !match || (match.player1 != model.userName && match.player2 != model.userName && match.player3 != model.userName && match.player4 != model.userName);
+          });
 }
 
 function checkCurrentPlayerActive(players){
