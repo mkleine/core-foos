@@ -101,6 +101,15 @@ body {
   color: #524f4f;
 }
 
+#playerNames {
+  text-align: center;
+  color: #524f4f;
+  font-size: 10pt;
+  border-bottom-style: solid;
+  border-bottom-color: #b3b1b1;
+  margin: 3px;
+}
+
 #statsInnerContainer .statsDetailLabel {
   display: inline;
   font-size: 11pt;

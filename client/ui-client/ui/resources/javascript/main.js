@@ -59,10 +59,12 @@ function setWaitingPlayers(waitingPlayers) {
         return true;
       });
 
-      // title sieht scheisse aus, also kurz mal n verstecktes attribut...
-      $("#playersQueue").attr('titleText',playerNames.join(","));
+      $("#playerNames").stop().css("opacity", 1)
+              .text(playerNames.join(", ")).fadeIn(200);
     } else {
-      $("#playersQueue").removeAttr('titleText');
+      $("#playerNames").fadeOut(500,function(){
+        $(this).text('');
+      });
     }
   }
 }
@@ -275,7 +277,7 @@ function initUi() {
 
   $("#quickRequestCompleteMatch").text("Wir sind komplett!").click(function(){
     if(model.waitingMatches.concat(model.activeMatch).every(function(match){
-      return match.player1 != model.userName && match.player2 != model.userName && match.player3 != model.userName && match.player4 != model.userName;
+      return (match.player1 != model.userName && match.player2 != model.userName && match.player3 != model.userName && match.player4 != model.userName);
     })) {
       coreFoosClient.registerMatch([model.userName, model.userName, model.userName, model.userName], updateClientState);
     } else {
@@ -308,21 +310,6 @@ function initUi() {
       updateClientState(data);
     });
 
-  });
-
-  $("#playersQueue").mouseenter(function(){
-    var playerNames = $("#playersQueue").attr('titleText');
-    if(playerNames && playerNames.length > 0) {
-
-      $('#playerNames').stop().css("opacity", 1)
-              .text(playerNames)
-              .fadeIn(500);
-    }
-  });
-
-  $("#playersQueue").mouseleave(function(){
-    $('#playerNames').fadeOut(500,function(){
-    });
   });
 
 }
