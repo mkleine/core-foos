@@ -116,8 +116,10 @@ var matchPlayers = function (callback) {
           return index < 3; // stop after 4th user
         });
 
-        callback(match);
+        callback(match, waitingUsers.splice(4));
       });
+    } else {
+      callback(null, waitingUsers);
     }
   });
 };

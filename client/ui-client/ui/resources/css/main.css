@@ -108,6 +108,16 @@ body {
   color: #757171;
 }
 
+#quickRequestCompleteMatch {
+  display: inline-block;
+  cursor: pointer;
+}
+
+#quickRequestMatch {
+  display: inline-block;
+  cursor: pointer;
+}
+
 /* ------ Queue ------*/
 #queueContainer, #queueCreationContainer {
   text-align: center;

@@ -15,12 +15,19 @@ $(function () {
 
   coreFoosClient.registerHandler(EVENT_INITIAL_STATE, receiveInitialState);
 
-  coreFoosClient.registerHandler(EVENT_UPDATE_STATE, updateMatches);
+  coreFoosClient.registerHandler(EVENT_UPDATE_STATE, updateClientState);
 
   initUi();
 });
 
 function receiveInitialState(data){
+  if(model.userName) {
+    console.error('ILLEGAL STATE: cannot re-apply initial state!');
+    // we're initialized, maybe the server was restarted?
+    window.location.reload();
+    return;
+  }
+
   model.userName = window.prompt('Gib Deinen Namen ein:', data.user_name);
   if(!model.userName) {
     model.userName = data.user_name;
@@ -40,7 +47,7 @@ function receiveInitialState(data){
   updateStatusView();
 }
 
-function updateMatches(data){
+function updateClientState(data){
   if(data){
     if(data.upsert){
       const match = data.upsert;
@@ -57,6 +64,9 @@ function updateMatches(data){
 
     removeMatch(data.remove);
 
+    if(data.waiting_players) {
+      model.waitingPlayers = data.waiting_players;
+    }
     updateStatusView();
 
   } else {
@@ -174,7 +184,7 @@ function createRemoveMatchHandler(matchId){
     console.log('remove match from queue button clicked: ' + matchId);
     coreFoosClient.endMatch(matchId, function(data){
       console.log("match "+ matchId + " removed: " + JSON.stringify(data));
-      updateMatches(data);
+      updateClientState(data);
     });
   }
 }
@@ -238,19 +248,39 @@ function initUi() {
     return true;
   });
 
+  $("#quickRequestCompleteMatch").text("Wir sind komplett!").click(function(){
+    if(model.waitingMatches.concat(model.activeMatch).every(function(match){
+      return match.player1 != model.userName && match.player2 != model.userName && match.player3 != model.userName && match.player4 != model.userName;
+    })) {
+      coreFoosClient.registerMatch([model.userName, model.userName, model.userName, model.userName], updateClientState);
+    } else {
+      console.info("already registered");
+    }
+  });
+
+  $("#quickRequestMatch").text("Ich will spielen!").click(function(){
+    if(model.waitingPlayers.every(function(player){
+      return player.name != model.userName;
+    })) {
+      coreFoosClient.registerMatch([model.userName], updateClientState);
+    } else {
+      console.log('already registered!');
+    }
+  });
+
   // add booking button click function
   queueBookingButton.click(function () {
     const filteredPlayers = [];
     inputs.every(function(name){
-      const val = name.val();
-      if(val && val.length > 0){
+      var val = name.val();
+      if(val && (val = val.trim()) && val.length > 0){
         filteredPlayers.push(val);
       }
       return true;
     });
     coreFoosClient.registerMatch(filteredPlayers, function(data){
       resetMatchCreationContainer(images, inputs);
-      updateMatches(data);
+      updateClientState(data);
     });
 
   });
@@ -313,6 +343,7 @@ function checkPlayerText() {
     queueBookingButton.attr("class", "bookingButton active");
   }
 }
+
 function updateStatusView() {
   const queueSize = model.waitingMatches.length;
   const isTableOccupied = model.activeMatch != null;

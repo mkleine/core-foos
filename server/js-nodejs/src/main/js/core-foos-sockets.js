@@ -47,19 +47,19 @@ webSocket.on('connection', function (client) {
     });
   });
 
-  function updateState(callback, upsertMatch, removeMatch){
-    const newState = {upsert : upsertMatch, remove: removeMatch};
+  function updateState(callback, upsertMatch, removeMatch, waitingPlayers){
+    const newState = {upsert : upsertMatch, remove: removeMatch, waiting_players : waitingPlayers};
     console.log('broadcasting state update: ' + JSON.stringify(newState));
     client.broadcast.emit('update_state',newState);
     callback(newState);
   }
 
   client.on('register_match', function (data, callback) {
-    repository.requestMatch(data, function (match) {
-      if (match) {
-        logger.log("starting new match: "+JSON.stringify(match));
+    repository.requestMatch(data, function (match, waitingUsers) {
+      if(match || waitingUsers) {
+        logger.log("request Match produced "+JSON.stringify(match) + " / " + JSON.stringify(waitingUsers));
       }
-      updateState(callback,match);
+      updateState(callback, match, null, waitingUsers);
     });
   });
 
