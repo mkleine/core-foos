@@ -34,7 +34,7 @@ function receiveInitialState(data){
   }
   model.activeMatch = data.active_match;
   model.waitingMatches = data.waiting_matches;
-  model.waitingPlayers = data.waiting_players;
+  setWaitingPlayers(data.waiting_players);
 
   updateActiveMatchContainer();
 
@@ -45,6 +45,26 @@ function receiveInitialState(data){
   });
 
   updateStatusView();
+}
+
+function setWaitingPlayers(waitingPlayers) {
+  if(waitingPlayers){
+    model.waitingPlayers = waitingPlayers;
+
+    if(waitingPlayers.length > 0) {
+      var playerNames = [];
+
+      waitingPlayers.every(function(player){
+        playerNames.push(player.name);
+        return true;
+      });
+
+      // title sieht scheisse aus, also kurz mal n verstecktes attribut...
+      $("#playersQueue").attr('titleText',playerNames.join(","));
+    } else {
+      $("#playersQueue").removeAttr('titleText');
+    }
+  }
 }
 
 function updateClientState(data){
@@ -64,9 +84,8 @@ function updateClientState(data){
 
     removeMatch(data.remove);
 
-    if(data.waiting_players) {
-      model.waitingPlayers = data.waiting_players;
-    }
+    setWaitingPlayers(data.waiting_players);
+
     updateStatusView();
 
   } else {
@@ -230,7 +249,13 @@ function initUi() {
     $("#queueEntry_creation .queuePlayerContainer.4Player .queuePlayerName input")
   ];
 
+  $("#queueEntry_creation .queueRemoveEntryButton").click(function() {
+    $("#queueCreationEntry").attr("class", "queueEntry");
+    $("#queueEntry_creation").attr("class", "queueEntry invisible");
+  });
+
   const queueBookingButton = $("#queueEntry_creation .bookingButton");
+  queueBookingButton.attr("class", "bookingButton active");
 
   // toggle buttons hover
   queueAddEntryButton.hover(function () {
@@ -284,6 +309,22 @@ function initUi() {
     });
 
   });
+
+  $("#playersQueue").mouseenter(function(){
+    var playerNames = $("#playersQueue").attr('titleText');
+    if(playerNames && playerNames.length > 0) {
+
+      $('#playerNames').stop().css("opacity", 1)
+              .text(playerNames)
+              .fadeIn(500);
+    }
+  });
+
+  $("#playersQueue").mouseleave(function(){
+    $('#playerNames').fadeOut(500,function(){
+    });
+  });
+
 }
 
 function checkCurrentPlayerActive(players){
@@ -315,7 +356,6 @@ function togglePlayerImage(playerImageContainer, playerInputContainer) {
     if (playerInputContainer.val() == "") {
       playerInputContainer.val(model.userName);
     }
-    checkPlayerText();
   });
   // toggle playerImage
   playerInputContainer.bind("propertychange keyup input paste", function (event) {
@@ -325,23 +365,7 @@ function togglePlayerImage(playerImageContainer, playerInputContainer) {
     else {
       playerImageContainer.attr("class", "queuePlayerImage");
     }
-    checkPlayerText();
   });
-
-}
-
-function checkPlayerText() {
-
-  var queuePlayer1Name = $("#queueEntry_creation .queuePlayerContainer.1Player .queuePlayerName input");
-  var queuePlayer2Name = $("#queueEntry_creation .queuePlayerContainer.2Player .queuePlayerName input");
-  var queuePlayer3Name = $("#queueEntry_creation .queuePlayerContainer.3Player .queuePlayerName input");
-  var queuePlayer4Name = $("#queueEntry_creation .queuePlayerContainer.4Player .queuePlayerName input");
-
-  var queueBookingButton = $("#queueEntry_creation .bookingButton");
-
-  if (queuePlayer1Name.val() != "" && queuePlayer2Name.val() != "" && queuePlayer3Name.val() != "" && queuePlayer4Name.val() != "") {
-    queueBookingButton.attr("class", "bookingButton active");
-  }
 }
 
 function updateStatusView() {
