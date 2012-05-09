@@ -12,6 +12,15 @@ const coreFoosClient = (function () {
   console.log("connecting socket to " + url);
   const webSocket =  io.connect(url);
 
+  var connected = false;
+  webSocket.on('connect', function(){
+    if(connected) {
+      // better reload on re-connect
+      window.location.reload();
+    }
+    connected = true;
+  });
+
   console.log('attaching websocket event handlers...');
   const eventSource = Object.create(null);
 

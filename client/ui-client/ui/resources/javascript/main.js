@@ -20,18 +20,31 @@ $(function () {
   initUi();
 });
 
+function initUserName(defaultName) {
+  // read Name from cookie
+  var userName = $.cookie('core_foos_user_name');
+  if(userName) {
+    console.log("user name read from cookie: " + userName);
+  } else {
+    userName = window.prompt('Gib Deinen Namen ein (wird gespeichert, wenn Du hier was änderst):', defaultName) || defaultName;
+    if(userName != defaultName) {
+      console.log("storing user name in cookie: " + userName);
+      $.cookie('core_foos_user_name', userName, { expires : 1000});
+    }
+  }
+  model.userName = userName;
+}
+
 function receiveInitialState(data){
-  if(model.userName) {
+  if(!(model.initialized ^= true)) {
     console.error('ILLEGAL STATE: cannot re-apply initial state!');
     // we're initialized, maybe the server was restarted?
     window.location.reload();
     return;
   }
 
-  model.userName = window.prompt('Gib Deinen Namen ein:', data.user_name);
-  if(!model.userName) {
-    model.userName = data.user_name;
-  }
+  initUserName(data.user_name);
+
   model.activeMatch = data.active_match;
   model.waitingMatches = data.waiting_matches;
   setWaitingPlayers(data.waiting_players);
