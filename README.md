@@ -113,26 +113,6 @@ Some notes:
   </tr>
 </table>
 
-# WebSocket **client** message API (aka "what the client *may* respond to")
-
-<p>
-  <i>
-    Note: The Arguments are provided as JSON!
-  </i>
-</p>
-
-<table>
-  <tr>
-    <th>Message</th>
-    <th>Argument properties</th>
-  </tr>
-  <tr>
-    <td><code>start_match</code></td>
-    <td><code>match: {matchId: ...}</code></td>
-    <td><code>match: {date: startDate}</code></td>
-  </tr>
-</table>
-
 # Additional Features
 
 * Web UI fits device's viewport resolution (CSS Media Queries)
