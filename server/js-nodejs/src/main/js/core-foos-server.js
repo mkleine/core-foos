@@ -90,7 +90,13 @@ var requestMatch = function (newUsers, callback) {
       };
       logger.log("inserting new match " + JSON.stringify(newMatch));
       mongo.insert(matches, newMatch, function(){
-        callback(newMatch);
+        newUsers.every(function(user){
+          mongo.update(users, {name:user}, {requestDate:null}, function () {});
+          return true;
+        });
+        exports.getPendingRequests(function(pendingRequests){
+          callback(newMatch, pendingRequests)
+        });
       });
     });
   } else {
