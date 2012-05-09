@@ -41,10 +41,10 @@ var generateTestData = function () {
     'xyz'
   ], callback);
 
-  getListOfUsers(function (users) {
+  getPendingRequests(function (users) {
     logger.log("users: " + JSON.stringify(users) + " / length: " + users.length);
-    cancelPlay('xyz');
-    getListOfUsers(function (users) {
+    exports.cancelRequest('xyz', function(users){
+      logger.log('match request of xyz cancelled');
       logger.log("Num users: " + users.length);
     });
   });
@@ -53,14 +53,14 @@ var generateTestData = function () {
     console.log('got data: '+JSON.stringify(data));
   });
 
-  getListOfUsers(function (users) {
+  getPendingRequests(function (users) {
     logger.log("Num users: " + users.length)
   });
 
   logger.info("test data generated");
 };
 
-var getListOfUsers = function (callback) {
+var getPendingRequests = function (callback) {
   logger.log("Get list of waiting users");
   // type Date => 9 http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries-%24type
   mongo.find(users, {requestDate : {$type : 9}}, {}).sort('requestDate', 1).limit(50).toArray(function (err, docs) {
@@ -104,7 +104,7 @@ var requestMatch = function (newUsers, callback) {
 };
 
 var matchPlayers = function (callback) {
-  getListOfUsers(function (waitingUsers) {
+  getPendingRequests(function (waitingUsers) {
     if (waitingUsers && waitingUsers.length >= 4) {
 
       // TODO avoid recursion!
@@ -121,11 +121,6 @@ var matchPlayers = function (callback) {
     } else {
       callback(null, waitingUsers);
     }
-  });
-};
-
-var cancelPlay = function (userName) {
-  mongo.update(users, {name:userName}, {name:userName, requestDate:null}, function () {
   });
 };
 
@@ -188,9 +183,8 @@ var endMatch = function (data, callback) {
   });
 };
 
-exports.getListOfUsers = getListOfUsers;
+exports.getPendingRequests = getPendingRequests;
 exports.requestMatch = requestMatch;
-exports.cancelPlay = cancelPlay;
 exports.endMatch = endMatch;
 exports.startMatch = startMatch;
 exports.initialize = initialize;
@@ -210,5 +204,11 @@ exports.getWaitingMatches = function(callback) {
       logger.warn("cannot find waiting matches: "+err);
     }
     callback(result);
+  });
+};
+
+exports.cancelRequest = function (userName, callback) {
+  mongo.update(users, {name:userName}, {name:userName, requestDate:null}, function(){
+    getPendingRequests(callback);
   });
 };

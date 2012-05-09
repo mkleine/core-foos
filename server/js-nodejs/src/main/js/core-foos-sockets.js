@@ -34,7 +34,7 @@ webSocket.on('connection', function (client) {
 
     repository.getWaitingMatches(function(matches){
 
-      repository.getListOfUsers(function(users) {
+      repository.getPendingRequests(function(users) {
 
         client.emit('initial_state', {
           // TODO use registration/login instead of generating new user names
@@ -78,6 +78,14 @@ webSocket.on('connection', function (client) {
         console.log("couldn't finish match "+JSON.stringify(data));
         callback();
       }
+    });
+  });
+
+  client.on('cancel_request', function(data, callback) {
+    logger.log('receiving "cancel_request from ' + JSON.stringify(data) + " with " +callback);
+
+    repository.cancelRequest(data, function(waitingUsers){
+      updateState(callback, null, null, waitingUsers);
     });
   });
 

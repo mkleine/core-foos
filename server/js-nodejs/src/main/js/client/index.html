@@ -100,24 +100,12 @@
       $('#players').append('<li>' + user + '</li>');
     });
 
-    webSocket.on('waiting_matches', function (data) {
-        alert('MATCHES:'+JSON.stringify(data));
-        if (data)
-            $('#messages').append('<li>There are currently ' + data.length + ' matches waiting</li>');
-    });
-
     webSocket.on('leave', function (user) {
       $('#players').append('<li>no more ' + user + '</li>');
     });
 
     webSocket.on('disconnect', function () {
       $('#messages').append('<li>Disconnected from the server.</li>');
-    });
-
-    webSocket.on('start_match', function (data) {
-      // alert("Start match with " + JSON.stringify(data));
-      $('#messages').append('<li>Start match.</li>');
-      $('#currentMatch').val(data.match._id);
     });
 
     webSocket.on('list', function (users) {
@@ -160,7 +148,7 @@
       $('#user').val('');
     });
     $('#checkStateButton').bind('click', function () {
-      webSocket.emit("waiting_matches");
+      console.warn('NOT IMPLEMENTED');
     });
     $('#endMatchButton').bind('click', function () {
       var matchId = $('#currentMatch').val();

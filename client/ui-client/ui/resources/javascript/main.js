@@ -60,24 +60,40 @@ function receiveInitialState(data){
   updateStatusView();
 }
 
+function isOldRequest(user) {
+  return 1 < (new Date() // now
+          - new Date(user.requestDate)) / 3600000;
+}
+
 function setWaitingPlayers(waitingPlayers) {
   if(waitingPlayers){
     model.waitingPlayers = waitingPlayers;
 
     if(waitingPlayers.length > 0) {
-      var playerNames = [];
 
-      waitingPlayers.every(function(player){
-        playerNames.push(player.name);
+      $("#playerNames").empty();
+      waitingPlayers.every(function(player, index){
+        var playerNameElem = $("<span />").text(player.name);
+        if(player.name == model.userName || isOldRequest(player)) {
+          playerNameElem.css('cursor','pointer').click(function(){
+            console.log('canceling request for user ' + player.name);
+            coreFoosClient.cancelRequest(player.name, function(data){
+              console.log("match request canceled");
+              updateClientState(data);
+            });
+          })
+        }
+        if(index > 0) {
+          $("<span>, </span>").appendTo($("#playerNames"));
+        }
+        playerNameElem.appendTo($("#playerNames"));
         return true;
       });
 
-      $("#playerNames").stop().css("opacity", 1)
-              .text(playerNames.join(", ")).fadeIn(200);
+      $("#playerNames").stop().css("opacity", 1).fadeIn(200);
+
     } else {
-      $("#playerNames").fadeOut(500,function(){
-        $(this).text('');
-      });
+      $("#playerNames").fadeOut(500);
     }
   }
 }

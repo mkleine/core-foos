@@ -1,10 +1,5 @@
-const EVENT_USER_NAME = "user_name";
-const EVENT_ACTIVE_MATCH = "active_match";
-const EVENT_WAITING_MATCHES = "waiting_matches";
-const EVENT_START_MATCH = "start_match";
-const EVENT_END_MATCH = "end_match";
-const EVENT_UPDATE_STATE = "update_state";
 const EVENT_INITIAL_STATE = "initial_state";
+const EVENT_UPDATE_STATE = "update_state";
 
 // init
 const coreFoosClient = (function () {
@@ -25,13 +20,8 @@ const coreFoosClient = (function () {
   const eventSource = Object.create(null);
 
   [
-    EVENT_USER_NAME,
-    EVENT_ACTIVE_MATCH,
-    EVENT_WAITING_MATCHES,
-    EVENT_START_MATCH,
-    EVENT_END_MATCH,
-    EVENT_UPDATE_STATE,
-    EVENT_INITIAL_STATE
+    EVENT_INITIAL_STATE,
+    EVENT_UPDATE_STATE
   ].every(
           function(eventName){
             console.log("... " + eventName);
@@ -53,6 +43,10 @@ const coreFoosClient = (function () {
 
     endMatch : function(matchId, callback){
       webSocket.emit("end_match", {matchId : matchId, name : model.userName}, callback);
+    },
+
+    cancelRequest : function(userName, callback) {
+      webSocket.emit('cancel_request', userName, callback);
     },
 
     login : function(name, pwd, callback) {
