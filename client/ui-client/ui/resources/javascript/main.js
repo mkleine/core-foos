@@ -338,7 +338,9 @@ function mayRequestMatch() {
 
 function checkCurrentPlayerActive(players){
   if(players && players.indexOf(model.userName) > -1) {
-    playAudio("rooster");
+    if(rooster) {
+      rooster.play();
+    }
     alert("Kickern, jetzt!");
   }
 }
@@ -389,13 +391,4 @@ function updateStatusView() {
 
   $("#queueSizeValue").text(model.waitingMatches.length);
   $("#playersQueueSizeValue").text(model.waitingPlayers.length);
-}
-
-function playAudio(audioId) {
-  var element = document.getElementById(audioId);
-  if(element && 'function' == typeof(element.play)){
-    element.play();
-  } else {
-    console.warn("cannot play audio for id "+audioId);
-  }
 }
