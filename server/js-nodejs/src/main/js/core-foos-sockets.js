@@ -1,4 +1,5 @@
 const http = require('http');
+const url = require('url');
 const socketIO = require('socket.io');
 const static = require('node-static');
 const repository = require('./core-foos-server');
@@ -12,10 +13,29 @@ repository.initialize();
 logger.log("Ready to listen");
 
 var httpServer = http.createServer(function (request, response) {
-  logger.log('handling http request '+request.toString());
-  request.addListener('end', function () {
-    clientFiles.serve(request, response);
-  });
+
+  const parsedURL = url.parse(request.url, true);
+  logger.log("handling request: "+ JSON.stringify(parsedURL));
+  if(parsedURL.pathname == '/quickmatch') {
+
+    const playerName = "chillout-" + new Date().toLocaleTimeString();
+
+    repository.requestImmediateMatch(playerName, function(upsertMatch, removeMatch, waitingPlayers){
+      const newState = {upsert : upsertMatch, remove: removeMatch, waiting_players : waitingPlayers};
+      console.log('broadcasting state update: ' + JSON.stringify(newState));
+
+      webSocket.sockets.emit('update_state',newState);
+    });
+
+    // serve something useful
+    response.writeHead(200, {'Content-Type': 'text/plain'});
+    response.end('okay');
+
+  } else {
+    request.addListener('end', function () {
+      clientFiles.serve(request, response);
+    });
+  }
 });
 httpServer.listen(config.port ? config.port : 2000);
 

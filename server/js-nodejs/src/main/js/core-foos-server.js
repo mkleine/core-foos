@@ -218,3 +218,21 @@ exports.cancelRequest = function (userName, callback) {
     getPendingRequests(callback);
   });
 };
+
+exports.requestImmediateMatch = function(playerName, callback) {
+  // first reset current active match, if any
+  exports.getActiveMatch(function(activeMatch){
+    if(activeMatch) {
+      const newValue = {state:MATCH_STATE_WAITING, startDate:null};
+      mongo.update(matches, {_id:activeMatch._id}, newValue, function (err, result) {
+
+        activeMatch.state = newValue.state;
+        activeMatch.startDate = null;
+        callback(activeMatch);
+      });
+    }
+
+    // finally request the immediate match
+    exports.requestMatch([playerName,playerName,playerName,playerName],callback);
+  });
+};
