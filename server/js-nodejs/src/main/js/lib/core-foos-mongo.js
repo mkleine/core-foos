@@ -1,7 +1,7 @@
 //noinspection JSUnresolvedFunction
 const util = require('./core-foos-util.js');
 const mongodb = require('mongodb');
-var logger = util.createLogger('core-foos-mongo');
+var logger = util.createLogger('### MONGO');
 
 function wrapId(data) {
   if(data._id){

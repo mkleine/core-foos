@@ -1,6 +1,6 @@
-var mongo = require('./lib/core-foos-mongo');
-const util = require('./lib/core-foos-util');
-const logger = util.createLogger('core-foos-server');
+var mongo = require('./core-foos-mongo');
+const util = require('./core-foos-util');
+const logger = util.createLogger('### REPO:');
 
 var users;
 var matches;
@@ -9,17 +9,21 @@ const MATCH_STATE_FINISHED = "FINISHED";
 const MATCH_STATE_WAITING = "WAITING";
 const MATCH_STATE_ACTIVE = "ACTIVE";
 
+var initialized = false;
 var initialize = function () {
-  config = util.parseConfig();
-  mongo.openConnection(function (mongoResult) {
-    users = mongoResult.users;
-    matches = mongoResult.matches;
+  if(!initialized) {
+    config = util.parseConfig();
+    mongo.openConnection(function (mongoResult) {
+      users = mongoResult.users;
+      matches = mongoResult.matches;
 
-    if(config.generateTestData){
-      logger.log("generating test data ...");
-      generateTestData();
-    }
-  });
+      if(config.generateTestData){
+        logger.log("generating test data ...");
+        generateTestData();
+      }
+    });
+  }
+  initialized = true;
 };
 
 var generateTestData = function () {
@@ -223,16 +227,25 @@ exports.requestImmediateMatch = function(playerName, callback) {
   // first reset current active match, if any
   exports.getActiveMatch(function(activeMatch){
     if(activeMatch) {
+      if(activeMatch.player1 == playerName
+              || activeMatch.player2 == playerName
+              || activeMatch.player3 == playerName
+              || activeMatch.player4 == playerName){
+        logger.info('ignoring immediate match request for '+ playerName);
+        return; // no need to invoke callback
+      }
+
       const newValue = {state:MATCH_STATE_WAITING, startDate:null};
       mongo.update(matches, {_id:activeMatch._id}, newValue, function (err, result) {
 
         activeMatch.state = newValue.state;
         activeMatch.startDate = null;
+        // first callback sends upsert of active match
         callback(activeMatch);
       });
     }
 
-    // finally request the immediate match
+    // finally request the immediate match, possibly leading to a second invocation of callback
     exports.requestMatch([playerName,playerName,playerName,playerName],callback);
   });
 };

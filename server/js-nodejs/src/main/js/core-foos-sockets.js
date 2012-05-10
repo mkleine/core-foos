@@ -1,52 +1,12 @@
-const http = require('http');
-const url = require('url');
-const socketIO = require('socket.io');
-const static = require('node-static');
-const repository = require('./core-foos-server');
-const util = require('./lib/core-foos-util');
-const config = util.parseConfig();
-var logger = util.createLogger('core-foos-socket');
-
-var clientFiles = new static.Server(config.dir ? config.dir : './client');
+const repository = require('./lib/core-foos-repository');
 repository.initialize();
 
-logger.log("Ready to listen");
+const util = require('./lib/core-foos-util');
+const config = util.parseConfig();
+const logger = util.createLogger('### SOCKETS');
 
-var httpServer = http.createServer(function (request, response) {
-
-  const parsedURL = url.parse(request.url, true);
-  logger.log("handling request: "+ JSON.stringify(parsedURL));
-  if(parsedURL.pathname == '/quickmatch') {
-
-    const playerName = "chillout-" + new Date().toLocaleTimeString();
-
-    repository.requestImmediateMatch(playerName, function(upsertMatch, removeMatch, waitingPlayers){
-      const newState = {upsert : upsertMatch, remove: removeMatch, waiting_players : waitingPlayers};
-      console.log('broadcasting state update: ' + JSON.stringify(newState));
-
-      webSocket.sockets.emit('update_state',newState);
-    });
-
-    // serve something useful
-    response.writeHead(200, {'Content-Type': 'text/plain'});
-    response.end('okay');
-
-  } else {
-    request.addListener('end', function () {
-      clientFiles.serve(request, response);
-    });
-  }
-});
-httpServer.listen(config.port ? config.port : 2000);
-
-var webSocket = socketIO.listen(httpServer);
-if(config.deployment == "heroku") {
-  webSocket.configure(function () {
-    // taken from https://devcenter.heroku.com/articles/using-socket-io-with-node-js-on-heroku
-    webSocket.set("transports", ["xhr-polling"]);
-    webSocket.set("polling duration", 10);
-  });
-}
+// create a socket.io http server
+const webSocket = require('./lib/core-foos-http').createSocketServer();
 
 webSocket.on('connection', function (client) {
 
