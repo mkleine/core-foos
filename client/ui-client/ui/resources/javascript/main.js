@@ -10,9 +10,6 @@ const model = Object.create(null);
 
 // init
 $(function () {
-  $("#statusView").text(statusFreeText);
-  $("#statusCounter").css('display', 'none');
-
   coreFoosClient.registerHandler(EVENT_INITIAL_STATE, receiveInitialState);
 
   coreFoosClient.registerHandler(EVENT_UPDATE_STATE, updateClientState);
@@ -26,7 +23,7 @@ function initUserName(defaultName) {
   if(userName) {
     console.log("user name read from cookie: " + userName);
   } else {
-    userName = window.prompt('Gib Deinen Namen ein (wird gespeichert, wenn Du hier was änderst):', defaultName) || defaultName;
+    userName = window.prompt('Gib Deinen Namen ein (wird gespeichert):', defaultName) || defaultName;
     if(userName != defaultName) {
       console.log("storing user name in cookie: " + userName);
       $.cookie('core_foos_user_name', userName, { expires : 1000});
