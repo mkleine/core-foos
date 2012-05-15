@@ -98,16 +98,19 @@ function setWaitingPlayers(waitingPlayers) {
 function updateClientState(data){
   if(data){
     if(data.upsert){
-      const match = data.upsert;
-      console.log('applying changes to match '+JSON.stringify(match));
-      if(match.startDate){
-        // upserting active match
-        updateActiveMatch(match);
-      } else {
-        // upserting waiting match
-        model.waitingMatches.push(match);
-        addReadOnlyQueueEntry(match._id, [match.player1, match.player2, match.player3, match.player4], match.requestDate);
-      }
+      const upsert = $.isArray(data.upsert) ? data.upsert : [data.upsert];
+
+      upsert.forEach(function(match){
+        console.log('applying changes to match '+JSON.stringify(match));
+        if(match.startDate){
+          // upserting active match
+          updateActiveMatch(match);
+        } else {
+          // upserting waiting match
+          model.waitingMatches.push(match);
+          addReadOnlyQueueEntry(match._id, [match.player1, match.player2, match.player3, match.player4], match.requestDate);
+        }
+      });
     }
 
     removeMatch(data.remove);
