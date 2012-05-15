@@ -223,7 +223,7 @@ exports.cancelRequest = function (userName, callback) {
   });
 };
 
-exports.requestImmediateMatch = function(playerName, callback) {
+exports.requestImmediateMatch = function(playerName, callback/*(oldActiveMatch, newActiveMatch, waitingPlayers)*/) {
   // first reset current active match, if any
   exports.getActiveMatch(function(activeMatch){
     if(activeMatch) {
@@ -232,20 +232,29 @@ exports.requestImmediateMatch = function(playerName, callback) {
               || activeMatch.player3 == playerName
               || activeMatch.player4 == playerName){
         logger.info('ignoring immediate match request for '+ playerName);
-        return; // no need to invoke callback
+        callback();
+
+      } else {
+
+        const newValue = {state:MATCH_STATE_WAITING, startDate:null};
+        mongo.update(matches, {_id:activeMatch._id}, newValue, function (err, result) {
+
+          activeMatch.state = newValue.state;
+          activeMatch.startDate = null;
+
+          exports.requestMatch([playerName,playerName,playerName,playerName],
+                  function(newMatch, waitingPlayers){
+                    callback(activeMatch, newMatch, waitingPlayers);
+                  });
+
+        });
       }
+    } else {
 
-      const newValue = {state:MATCH_STATE_WAITING, startDate:null};
-      mongo.update(matches, {_id:activeMatch._id}, newValue, function (err, result) {
-
-        activeMatch.state = newValue.state;
-        activeMatch.startDate = null;
-        // first callback sends upsert of active match
-        callback(activeMatch);
-      });
+      exports.requestMatch([playerName,playerName,playerName,playerName],
+              function(newMatch, waitingPlayers){
+                callback(null, newMatch, waitingPlayers);
+              });
     }
-
-    // finally request the immediate match, possibly leading to a second invocation of callback
-    exports.requestMatch([playerName,playerName,playerName,playerName],callback);
   });
 };

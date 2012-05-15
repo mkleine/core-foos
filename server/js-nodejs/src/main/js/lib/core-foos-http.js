@@ -1,46 +1,33 @@
-const http = require('http');
+const express = require('express');
 const url = require('url');
 const socketIO = require('socket.io');
-const nodeStatic = require('node-static');
 const repository = require('./core-foos-repository');
 const util = require('./core-foos-util');
 const config = util.parseConfig();
 var logger = util.createLogger('### HTTP');
 
-const clientFiles = new nodeStatic.Server(config.dir ? config.dir : './client');
-
 const COOKIE_USER_NAME = 'core_foos_user_name';
+const COOKIE_QUICK_MATCH = 'core_foos_quick_match';
 
-function getCookies(request) {
-  const cookies = Object.create(null);
-  request.headers.cookie && request.headers.cookie.split(';').forEach(function( cookie ) {
-    var parts = cookie.split('=');
-    cookies[ parts[ 0 ].trim() ] = ( parts[ 1 ] || '' ).trim();
-  });
-  return cookies;
-}
+const DEFAULT_USER_NAME = 'quick-match';
 
-function setCookie(response, name, value, secondsToLive) {
-  const object = {
-    'Set-Cookie': name + "="+value,
-    'Content-Type': 'text/plain'
-  };
-  if(millisToLive){
-    object['Max-Age'] = secondsToLive;
+function WebSocketHandler(webSocket) {
+
+  function determineUserName(request, response) {
+    var userName = request.cookies[COOKIE_USER_NAME];
+    if(!userName){
+      userName = DEFAULT_USER_NAME;
+      response.cookie(COOKIE_USER_NAME, userName, {maxAge: 60});
+    }
+    return userName;
   }
-  response.writeHead(200, object);
-}
 
-function determineUserName(request,response) {
-  const cookies = getCookies(request);
-  var userName = cookies[COOKIE_USER_NAME];
-  if(!userName){
-    userName = "quick-match";
+  function sendRedirect(response, toUrl){
+    response.writeHead(302, {
+      'Location': toUrl || '/'
+    });
+    response.end();
   }
-  return userName;
-}
-
-function serveQuickHandles(webSocket, request, response){
 
   function broadcastStateUpdate(upsertMatch, removeMatch, waitingPlayers) {
     const newState = {upsert:upsertMatch, remove:removeMatch, waiting_players:waitingPlayers};
@@ -49,53 +36,54 @@ function serveQuickHandles(webSocket, request, response){
     webSocket.sockets.emit('update_state', newState);
   }
 
-  const parsedURL = url.parse(request.url, true);
-  const playerName = determineUserName(request, response);
+  this.quickMatch = function(request, response) {
+    const parsedURL = url.parse(request.url, true);
+    const playerName = determineUserName(request, response);
+    logger.log("handling request: "+ JSON.stringify(parsedURL) + " (cookies: "+JSON.stringify(request.cookies) + ")");
 
-  if(parsedURL.pathname == '/quickmatch') {
-    logger.log("handling quickmatch request: "+ JSON.stringify(parsedURL) + " (user: "+playerName+")");
-    repository.requestImmediateMatch(playerName, broadcastStateUpdate);
-    return true;
-
-  } else if(parsedURL.pathname == '/endactivematch'){
-    logger.log("handling quickmatch request: "+ JSON.stringify(parsedURL) + " (user: "+playerName+")");
-    repository.getActiveMatch(function(activeMatch){
-      if(activeMatch) {
-        repository.endMatch({matchId : activeMatch._id}, function(finishedMatch){
-
-          if (finishedMatch) {
-            repository.startMatch(function(startedMatch){
-              logger.log("starting match: "+ JSON.stringify(startedMatch));
-              broadcastStateUpdate(startedMatch, finishedMatch);
-            });
-          }
-
-        });
+    repository.requestImmediateMatch(playerName, function(m1, m2, p){
+      const upsert = [];
+      if(m1) {
+        upsert.push(m1);
       }
+      if(m2) {
+        upsert.push(m2);
+        response.cookie(COOKIE_QUICK_MATCH, m2._id, {maxAge: 3600*2});
+      }
+      broadcastStateUpdate(upsert, null, p);
+      sendRedirect(response);
     });
-    return true;
-  }
-  return false;
+  };
+
+  this.endMatch = function(request, response) {
+    logger.info('END MATCH');
+  };
+
+  this.endActiveMatch = function(req, res) {
+    logger.info('END ACTIVE MATCH');
+  };
+
 }
 
 module.exports = {
   createSocketServer : function(){
 
-    const httpServer = http.createServer(function (request, response) {
-      if(serveQuickHandles(webSocket, request, response)) {
-        // serve something useful
-        response.writeHead(200, {'Content-Type': 'text/plain'});
-        response.end('okay');
-      } else {
-        request.addListener('end', function () {
-          clientFiles.serve(request, response);
-        });
-      }
-    });
+    const httpServer = express.createServer(
+            express.logger({ format: ':method :url' }),
+            express.cookieParser(),
+            express.bodyParser(),
+            express.static(config.dir ? config.dir : (__dirname + '/../client'))
+    );
+    logger.info('DIR: ' + __dirname);
 
     httpServer.listen(config.port ? config.port : 2000);
 
     const webSocket = socketIO.listen(httpServer);
+    const handler = new WebSocketHandler(webSocket);
+
+    httpServer.use('/quickmatch', handler.quickMatch);
+    httpServer.use('/endactivematch', handler.endActiveMatch);
+    httpServer.use('/endmatch', handler.endMatch);
 
     if(config.deployment == "heroku") {
       webSocket.configure(function () {
