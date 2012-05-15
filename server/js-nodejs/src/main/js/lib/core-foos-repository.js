@@ -87,10 +87,7 @@ var requestMatch = function (newUsers, callback) {
         requestDate:now,
         startDate: activeMatches && activeMatches.length > 0 ? null : now,
         state:     activeMatches && activeMatches.length > 0 ? MATCH_STATE_WAITING : MATCH_STATE_ACTIVE,
-        player1:   newUsers[0],
-        player2:   newUsers[1],
-        player3:   newUsers[2],
-        player4:   newUsers[3]
+        players:   newUsers
       };
       logger.log("inserting new match " + JSON.stringify(newMatch));
       mongo.insert(matches, newMatch, function(){
@@ -170,7 +167,11 @@ var startMatch = function (callback) {
 // function({matchId : matchId, name : userName}, callback)
 var endMatch = function (data, callback) {
   logger.log("End match: "+ JSON.stringify(data), callback);
-  mongo.find(matches, {_id:data.matchId},{}).toArray(function(err,docs){
+  const query = {_id:data.matchId};
+  if(data.name) {
+    query.players = data.name;
+  }
+  mongo.find(matches, query,{}).toArray(function(err,docs){
     console.log("Found match to end: " + JSON.stringify(docs));
 
     if(!err && docs && docs.length == 1){
@@ -227,10 +228,8 @@ exports.requestImmediateMatch = function(playerName, callback/*(oldActiveMatch, 
   // first reset current active match, if any
   exports.getActiveMatch(function(activeMatch){
     if(activeMatch) {
-      if(activeMatch.player1 == playerName
-              || activeMatch.player2 == playerName
-              || activeMatch.player3 == playerName
-              || activeMatch.player4 == playerName){
+      if(activeMatch.players.indexOf(playerName) > -1) {
+
         logger.info('ignoring immediate match request for '+ playerName);
         callback();
 

@@ -32,6 +32,10 @@ function initUserName(defaultName) {
   model.userName = userName;
 }
 
+function getPlayers(match){
+  return match.players || [match.player1, match.player2, match.player3, match.player4];
+}
+
 function receiveInitialState(data){
   if(!(model.initialized ^= true)) {
     console.error('ILLEGAL STATE: cannot re-apply initial state!');
@@ -51,7 +55,8 @@ function receiveInitialState(data){
   var matches = model.waitingMatches || [];
   console.log("received waiting matches: "+JSON.stringify(matches));
   $.each(matches,function(index,match){
-    addReadOnlyQueueEntry(match._id, [match.player1, match.player2, match.player3, match.player4], match.requestDate);
+    const players = getPlayers(match);
+    addReadOnlyQueueEntry(match._id, players, match.requestDate);
   });
 
   updateStatusView();
@@ -108,7 +113,8 @@ function updateClientState(data){
         } else {
           // upserting waiting match
           model.waitingMatches.push(match);
-          addReadOnlyQueueEntry(match._id, [match.player1, match.player2, match.player3, match.player4], match.requestDate);
+          const players = getPlayers(match);
+          addReadOnlyQueueEntry(match._id, players, match.requestDate);
         }
       });
     }
@@ -195,7 +201,7 @@ function updateActiveMatchContainer(){
 
     updateTimer(new Date(match.startDate));
 
-    const players = [match.player1, match.player2, match.player3, match.player4];
+    const players = getPlayers(match);
 
     $("#currentMatchContainer").empty();
     const currentMatchId = 'currentMatch_' + match._id;
@@ -346,7 +352,7 @@ function noRequestPending() {
 }
 function notMatchActiveOrWaiting() {
   return model.waitingMatches.concat(model.activeMatch).every(function (match) {
-    return !match || (match.player1 != model.userName && match.player2 != model.userName && match.player3 != model.userName && match.player4 != model.userName);
+    return !match || getPlayers(match).players.indexOf(model.userName) < 0;
   });
 }
 /**
