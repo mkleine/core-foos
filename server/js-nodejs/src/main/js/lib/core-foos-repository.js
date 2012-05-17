@@ -9,59 +9,15 @@ const MATCH_STATE_FINISHED = "FINISHED";
 const MATCH_STATE_WAITING = "WAITING";
 const MATCH_STATE_ACTIVE = "ACTIVE";
 
-var initialized = false;
-var initialize = function () {
-  if(!initialized) {
-    config = util.parseConfig();
-    mongo.openConnection(function (mongoResult) {
-      users = mongoResult.users;
-      matches = mongoResult.matches;
-
-      if(config.generateTestData){
-        logger.log("generating test data ...");
-        generateTestData();
-      }
-    });
-  }
-  initialized = true;
-};
-
-var generateTestData = function () {
-  logger.info("requesting matches ...");
-  var callback = function(data){logger.log('registered: '+JSON.stringify(data));};
-  requestMatch([
-    'Frauke'
-  ], callback);
-  requestMatch([
-    'Tom'
-  ], callback);
-  requestMatch([
-    'Moritz'
-  ], callback);
-  requestMatch([
-    'Kai'
-  ], callback);
-  requestMatch([
-    'xyz'
-  ], callback);
-
-  getPendingRequests(function (users) {
-    logger.log("users: " + JSON.stringify(users) + " / length: " + users.length);
-    exports.cancelRequest('xyz', function(users){
-      logger.log('match request of xyz cancelled');
-      logger.log("Num users: " + users.length);
-    });
+var initialize = function (callback) {
+  logger.info('initializing repository ...');
+  config = util.parseConfig();
+  mongo.openConnection(function (mongoResult) {
+    users = mongoResult.users;
+    matches = mongoResult.matches;
+    initialize= function(f) {f();}; // immediate callback
+    callback();
   });
-
-  requestMatch(['user1', 'user2', 'user3', 'user4'], function (data) {
-    console.log('got data: '+JSON.stringify(data));
-  });
-
-  getPendingRequests(function (users) {
-    logger.log("Num users: " + users.length)
-  });
-
-  logger.info("test data generated");
 };
 
 var getPendingRequests = function (callback) {
@@ -164,12 +120,18 @@ var startMatch = function (callback) {
   });
 };
 
-// function({matchId : matchId, name : userName}, callback)
+// function({matchId : matchId, name : userName, startedBefore: date, requestedBefore : newerThan}, callback)
 var endMatch = function (data, callback) {
   logger.log("End match: "+ JSON.stringify(data), callback);
   const query = {_id:data.matchId};
   if(data.name) {
     query.players = data.name;
+  }
+  if(data.startedBefore) {
+    query.startDate = {$lt: data.startedBefore};
+  }
+  if(data.requestedBefore){
+    query.requestDate = {$lt: data.requestedBefore};
   }
   mongo.find(matches, query,{}).toArray(function(err,docs){
     console.log("Found match to end: " + JSON.stringify(docs));

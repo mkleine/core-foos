@@ -57,6 +57,11 @@ function WebSocketHandler(webSocket) {
 
   this.endMatch = function(request, response) {
     logger.info('END MATCH');
+    repository.endMatch({matchId : request.cookies[COOKIE_QUICK_MATCH], name : request.cookies[COOKIE_USER_NAME]},
+      function(finishedMatch) {
+        logger.info('END MATCH produced: '+JSON.stringify(finishedMatch));
+      }
+    )
   };
 
   this.endActiveMatch = function(req, res) {
