@@ -42,7 +42,7 @@ const coreFoosClient = (function () {
     },
 
     endMatch : function(matchId, callback){
-      webSocket.emit("end_match", {matchId : matchId, name : model.userName}, callback);
+      webSocket.emit("end_match", {_id : matchId}, callback);
     },
 
     cancelRequest : function(userName, callback) {

@@ -1,5 +1,3 @@
-var config = undefined;
-
 function Logger(prefix, level) {
   var logLevel = level ? level : 0; // all
   var logPrefix = prefix ? prefix : "core-foos-util"; // self
@@ -51,20 +49,24 @@ module.exports = {
   },
 
   parseConfig : function(logConfig) {
-    if(!config) {
-      try {
-        config = JSON.parse(process.argv[2]);
-      } catch (e) {
-        config = {};
-        console.warn("cannot parse config: " + e);
-        console.log("falling back to default config");
-      }
-      if(logConfig) {
-        console.log("config:");
-        console.dir(config);
+    if(!module.config) {
+      if(!process.argv[2]){
+        module.config = {};
+      } else {
+          try {
+            module.config = JSON.parse(process.argv[2]);
+          } catch (e) {
+            module.config = {};
+            console.warn("cannot parse config: " + e);
+            console.log("falling back to default config");
+          }
+          if(logConfig) {
+            console.log("config:");
+            console.dir(config);
+          }
       }
     }
-    return config;
+    return module.config;
   }
 
 };

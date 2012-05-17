@@ -2,9 +2,12 @@ const express = require('express');
 const url = require('url');
 const socketIO = require('socket.io');
 const repository = require('./core-foos-repository');
+const mongo = require('./core-foos-mongo');
 const util = require('./core-foos-util');
 const config = util.parseConfig();
 var logger = util.createLogger('### HTTP');
+
+repository.initialize(function(){logger.log('REPO initialized')});
 
 const COOKIE_USER_NAME = 'core_foos_user_name';
 const COOKIE_QUICK_MATCH = 'core_foos_quick_match';
@@ -17,7 +20,7 @@ function WebSocketHandler(webSocket) {
     var userName = request.cookies[COOKIE_USER_NAME];
     if(!userName){
       userName = DEFAULT_USER_NAME;
-      response.cookie(COOKIE_USER_NAME, userName, {maxAge: 60});
+      response.cookie(COOKIE_USER_NAME, userName, {maxAge: 60, path : '/'});
     }
     return userName;
   }
@@ -48,7 +51,7 @@ function WebSocketHandler(webSocket) {
       }
       if(m2) {
         upsert.push(m2);
-        response.cookie(COOKIE_QUICK_MATCH, m2._id, {maxAge: 3600*2});
+        response.cookie(COOKIE_QUICK_MATCH, m2._id, {maxAge: 3600*2, path : '/'});
       }
       broadcastStateUpdate(upsert, null, p);
       sendRedirect(response);
@@ -57,15 +60,36 @@ function WebSocketHandler(webSocket) {
 
   this.endMatch = function(request, response) {
     logger.info('END MATCH');
-    repository.endMatch({matchId : request.cookies[COOKIE_QUICK_MATCH], name : request.cookies[COOKIE_USER_NAME]},
-      function(finishedMatch) {
-        logger.info('END MATCH produced: '+JSON.stringify(finishedMatch));
-      }
-    )
   };
 
-  this.endActiveMatch = function(req, res) {
+  this.endActiveMatch = function(request, response) {
     logger.info('END ACTIVE MATCH');
+    const disjunctions = [];
+    const id = request.cookies[COOKIE_QUICK_MATCH];
+    if(id) {
+      disjunctions.push({_id : mongo.toBSONPureId(id)});
+    }
+    const name = request.cookies[COOKIE_USER_NAME];
+    if(name){
+      disjunctions.push({players : name});
+    }
+    // started 2 min ago
+    disjunctions.push({startDate : {$lt: new Date(new Date() - 1000*60*2)}});
+    repository.endMatch({state : "ACTIVE", $or : disjunctions},
+            function(finishedMatch) {
+              logger.info('END MATCH produced: '+JSON.stringify(finishedMatch));
+
+              if (finishedMatch) {
+                repository.startMatch(function(startedMatch){
+                  logger.log("starting match: "+ JSON.stringify(startedMatch));
+                  broadcastStateUpdate(startedMatch,finishedMatch);
+                  sendRedirect(response)
+                });
+              } else {
+                sendRedirect(response)
+              }
+            }
+    )
   };
 
 }

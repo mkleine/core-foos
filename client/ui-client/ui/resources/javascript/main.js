@@ -353,7 +353,7 @@ function noRequestPending() {
 }
 function notMatchActiveOrWaiting() {
   return model.waitingMatches.concat(model.activeMatch).every(function (match) {
-    return !match || getPlayers(match).players.indexOf(model.userName) < 0;
+    return !match || getPlayers(match).indexOf(model.userName) < 0;
   });
 }
 /**

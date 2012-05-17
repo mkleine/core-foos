@@ -1,9 +1,9 @@
 const repository = require('./lib/core-foos-repository');
-repository.initialize();
-
 const util = require('./lib/core-foos-util');
 const config = util.parseConfig();
 const logger = util.createLogger('### SOCKETS');
+
+repository.initialize(function(){logger.info('REPO initialized')});
 
 // create a socket.io http server
 const webSocket = require('./lib/core-foos-http').createSocketServer();

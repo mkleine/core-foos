@@ -6,21 +6,17 @@ var logger = util.createLogger('### MONGO');
 function wrapId(data) {
   if(data._id){
     logger.info("wrapping _id into new BSONPure.ObjectId: " + data._id);
-    data._id = new mongodb.BSONPure.ObjectID(new String(data._id));
+    data._id = module.exports.toBSONPureId(data._id);
   }
   return data;
 }
 
-function logUpdateResult(err, count){
-  if(err){
-    logger.error('error while updating collection :');
-    console.dir(err);
-  } else {
-    logger.log('updating collection affected ' + count +  " documents");
-  }
-}
 //noinspection JSUnresolvedVariable
 module.exports = {
+  toBSONPureId : function(id) {
+    return new mongodb.BSONPure.ObjectID(new String(id));
+  },
+
   openConnection : function (callback) {
     var config = util.parseConfig();
     const mongoHost = config.mongoHost ? config.mongoHost : 'localhost';
@@ -41,8 +37,8 @@ module.exports = {
       result.matches = new mongodb.Collection(client, 'matches');
       result.counters = new mongodb.Collection(client, 'counters');
 
-      callback(result);
       logger.log("connection open");
+      callback(result);
     });
   },
 
@@ -53,7 +49,7 @@ module.exports = {
         logger.error("error while removing " +  expr + " from collection " + collection + ": ");
         console.dir(err);
       } else {
-        logger.log('removed' +  expr + ' from collection ' + collection);
+        logger.log('removed ' +  JSON.stringify(expr) + ' from collection \'' + collection.collectionName + '\'');
       }
     });
   },
@@ -61,7 +57,6 @@ module.exports = {
   update : function (collection, selector, newValue, callback) {
     logger.log("updating " + JSON.stringify(newValue) + " on " + JSON.stringify(selector));
     collection.update(wrapId(selector), {$set:newValue}, {safe:true}, function(err, count) {
-      logUpdateResult(err, count);
       callback(err, count);
     });
   },
@@ -69,7 +64,6 @@ module.exports = {
   upsert : function (collection, selector, newValue, callback) {
     logger.log("upserting " + JSON.stringify(newValue) + " on " + JSON.stringify(selector));
     collection.update(wrapId(selector), {$set:newValue}, {upsert:true, safe:true}, function(err, count) {
-      logUpdateResult(err, count);
       callback(err, count);
     });
   },

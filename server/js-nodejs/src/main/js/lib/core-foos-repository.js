@@ -2,28 +2,25 @@ var mongo = require('./core-foos-mongo');
 const util = require('./core-foos-util');
 const logger = util.createLogger('### REPO:');
 
-var users;
-var matches;
-
 const MATCH_STATE_FINISHED = "FINISHED";
 const MATCH_STATE_WAITING = "WAITING";
 const MATCH_STATE_ACTIVE = "ACTIVE";
 
-var initialize = function (callback) {
-  logger.info('initializing repository ...');
-  config = util.parseConfig();
-  mongo.openConnection(function (mongoResult) {
-    users = mongoResult.users;
-    matches = mongoResult.matches;
-    initialize= function(f) {f();}; // immediate callback
-    callback();
-  });
-};
+function toUsers(names){
+  const result = [];
+  names.forEach(function(name){result.push({name:name});});
+  return result;
+}
+
+function toNames(users) {
+  const result = [];
+  users.forEach(function(user){result.push(user.name);});
+  return result;
+}
 
 var getPendingRequests = function (callback) {
-  logger.log("Get list of waiting users");
   // type Date => 9 http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries-%24type
-  mongo.find(users, {requestDate : {$type : 9}}, {}).sort('requestDate', 1).limit(50).toArray(function (err, docs) {
+  mongo.find(module.users, {requestDate : {$type : 9}}, {}).sort('requestDate', 1).limit(50).toArray(function (err, docs) {
     callback(docs);
   });
 };
@@ -34,10 +31,9 @@ var getPendingRequests = function (callback) {
  * @param callback
  */
 var requestMatch = function (newUsers, callback) {
-  logger.log("Got users: " + JSON.stringify(newUsers) + ", adding " + newUsers.length + " users");
+  logger.log("Request match: " + JSON.stringify(newUsers), callback);
   if (newUsers.length == 4) {
-    logger.log("new users = 4");
-    mongo.find(matches,{state:MATCH_STATE_ACTIVE},{}).limit(1).toArray(function(err,activeMatches){
+    mongo.find(module.matches,{state:MATCH_STATE_ACTIVE},{}).limit(1).toArray(function(err,activeMatches){
       const now = new Date();
       var newMatch = {
         requestDate:now,
@@ -45,41 +41,69 @@ var requestMatch = function (newUsers, callback) {
         state:     activeMatches && activeMatches.length > 0 ? MATCH_STATE_WAITING : MATCH_STATE_ACTIVE,
         players:   newUsers
       };
-      logger.log("inserting new match " + JSON.stringify(newMatch));
-      mongo.insert(matches, newMatch, function(){
-        newUsers.every(function(user){
-          mongo.update(users, {name:user}, {requestDate:null}, function () {});
-          return true;
-        });
-        exports.getPendingRequests(function(pendingRequests){
-          callback(newMatch, pendingRequests)
+      logger.log("inserting new match " + JSON.stringify(newMatch), callback);
+      mongo.insert(module.matches, newMatch, function(){
+        const users = toUsers(newUsers);
+        mongo.update(module.users, {$or : users}, {requestDate : null}, function(err, res) {
+          exports.getPendingRequests(function(pendingRequests){
+            callback(newMatch, pendingRequests)
+          });
         });
       });
     });
   } else {
-    const now = new Date();
-    newUsers.every(function(user){
-      mongo.upsert(users, {name:user}, {requestDate:now}, function () {});
-      return true;
-    });
-    matchPlayers(callback);
+    insertRequests(newUsers, new Date(), callback);
   }
 };
+
+function MatchHandler(matches){
+
+  this.insertMatch = function (newMatch, callback) {
+    mongo.insert(matches, newMatch, callback);
+  };
+
+  this.getMatches = function(selector, callback) {
+    mongo.find(module.matches,selector,{}).limit(1).toArray(function(err,result){
+      if(err) {
+        logger.warn("got error while retrieving matches",err);
+      }
+      callback(result ? result : []);
+    })
+  };
+
+  this.updateMatches = function (selector, value, callback) {
+    mongo.update()
+  };
+
+  return this;
+}
+
+function insertRequests(newUsers, date, callback){
+  const userName = newUsers.pop();
+  if (userName) {
+    mongo.upsert(module.users, {name : userName}, {requestDate : date}, function () {
+      insertRequests(newUsers, date, callback);
+    });
+  } else {
+    matchPlayers(callback);
+  }
+}
 
 var matchPlayers = function (callback) {
   getPendingRequests(function (waitingUsers) {
     if (waitingUsers && waitingUsers.length >= 4) {
 
-      // TODO avoid recursion!
-      requestMatch([waitingUsers[0].name, waitingUsers[1].name, waitingUsers[2].name, waitingUsers[3].name], function(match){
+      const remainingRequests = waitingUsers.splice(4);
 
-        waitingUsers.every(function(user,index){
-          logger.log('matching user: ' + user.name);
-          mongo.update(users, {name:user.name}, {requestDate:null}, function () {});
-          return index < 3; // stop after 4th user
+      // TODO avoid recursion!
+      requestMatch(toNames(waitingUsers), function(match){
+
+        waitingUsers.forEach(function(user){
+          logger.log('matching user: ' + JSON.stringify(user), callback);
+          mongo.update(module.users, user, {requestDate:null}, function () {});
         });
 
-        callback(match, waitingUsers.splice(4));
+        callback(match, remainingRequests);
       });
     } else {
       callback(null, waitingUsers);
@@ -103,13 +127,9 @@ var startMatch = function (callback) {
       exports.getWaitingMatches(function (docs) {
 
         if (docs && docs.length > 0) {
-          var match = docs[0];
-          var date = new Date();
-          mongo.upsert(matches, {_id:match._id}, {state:MATCH_STATE_ACTIVE, startDate:date}, function () {
-            logger.log("Starting match: " + JSON.stringify(match));
-            match.startDate = date;
-            callback(match);
-          });
+
+          exports.modifyMatch(docs[0], {state:MATCH_STATE_ACTIVE, startDate : new Date()},callback);
+
         } else {
           logger.warn("There's no match to start");
           callback();
@@ -120,38 +140,43 @@ var startMatch = function (callback) {
   });
 };
 
-// function({matchId : matchId, name : userName, startedBefore: date, requestedBefore : newerThan}, callback)
-var endMatch = function (data, callback) {
-  logger.log("End match: "+ JSON.stringify(data), callback);
-  const query = {_id:data.matchId};
-  if(data.name) {
-    query.players = data.name;
-  }
-  if(data.startedBefore) {
-    query.startDate = {$lt: data.startedBefore};
-  }
-  if(data.requestedBefore){
-    query.requestDate = {$lt: data.requestedBefore};
-  }
-  mongo.find(matches, query,{}).toArray(function(err,docs){
-    console.log("Found match to end: " + JSON.stringify(docs));
+var endMatch = function (query, callback) {
+  logger.log("Ending match: "+ JSON.stringify(query), callback);
+  mongo.find(module.matches, query,{}).toArray(function(err,docs){
+    logger.log("Found matches to end: " + JSON.stringify(docs));
 
-    if(!err && docs && docs.length == 1){
+    if(docs && docs.length == 1){
 
-      const newValue = {state:MATCH_STATE_FINISHED, endDate:new Date()};
-      mongo.upsert(matches, {_id:data.matchId}, newValue, function (err, result) {
-        if(err){
-          callback();
-        } else {
-          const finishedMatch = docs[0];
-          finishedMatch.state = newValue.state;
-          finishedMatch.endDate = newValue.endDate
-          callback(finishedMatch);
-        }
-      });
+      exports.modifyMatch(docs[0], {state:MATCH_STATE_FINISHED, endDate:new Date()}, callback);
+      return;
 
+    } else if(err) {
+      logger.warn("got error:",err);
     } else {
+      logger.info("ignoring 'endMatch' request because result length is not equals 1: " +JSON.stringify(docs));
+    }
+    callback();
+  });
+};
+
+function copyInto(source,target) {
+  Object.keys(source).forEach(function(key) {
+    target[key] = source[key];
+  });
+  return target;
+}
+
+exports.modifyMatch = function(match, newValue, callback) {
+  const msg = "modification of "+JSON.stringify(match) + " with " +  JSON.stringify(newValue);
+  mongo.upsert(module.matches, match, newValue, function (err) {
+    if(err){
+      logger.warn("modification of "+JSON.stringify(match) + " with " + JSON.stringify(newValue) + " produced error: ",err);
       callback();
+    } else {
+      // prepare callback result
+      const result = copyInto(newValue, copyInto(match, Object.create(null)));
+      logger.info(msg +  " produced " + JSON.stringify(result));
+      callback(result);
     }
   });
 };
@@ -160,9 +185,26 @@ exports.getPendingRequests = getPendingRequests;
 exports.requestMatch = requestMatch;
 exports.endMatch = endMatch;
 exports.startMatch = startMatch;
-exports.initialize = initialize;
+exports.initialize = function (callback) {
+    if(module.initializing){
+        logger.info('initializing ...');
+        module.initializing.push(callback);
+    } else if(module.users){
+        logger.info('already initialized');
+        callback();
+    } else {
+        module.initializing = [callback];
+        mongo.openConnection(function (mongoResult) {
+            module.users = mongoResult.users;
+            module.matches = mongoResult.matches;
+            logger.info('initialized');
+            module.initializing.forEach(function(c){c()});
+        });
+    }
+};
+
 exports.getActiveMatch = function(callback) {
-  mongo.find(matches, {state:MATCH_STATE_ACTIVE}, {}).toArray(function (err, result) {
+  mongo.find(module.matches, {state:MATCH_STATE_ACTIVE}, {}).toArray(function (err, result) {
     if(err) {
       logger.warn("cannot find active match: "+err);
     } else if(result && result.length > 1) {
@@ -172,7 +214,7 @@ exports.getActiveMatch = function(callback) {
   });
 };
 exports.getWaitingMatches = function(callback) {
-  mongo.find(matches, {state:MATCH_STATE_WAITING}, {}).sort('requestDate',1).limit(100).toArray(function (err, result) {
+  mongo.find(module.matches, {state:MATCH_STATE_WAITING}, {}).sort('requestDate',1).limit(100).toArray(function (err, result) {
     if(err) {
       logger.warn("cannot find waiting matches: "+err);
     }
@@ -181,7 +223,7 @@ exports.getWaitingMatches = function(callback) {
 };
 
 exports.cancelRequest = function (userName, callback) {
-  mongo.update(users, {name:userName}, {name:userName, requestDate:null}, function(){
+  mongo.update(module.users, {name:userName}, {name:userName, requestDate:null}, function(){
     getPendingRequests(callback);
   });
 };
@@ -189,26 +231,34 @@ exports.cancelRequest = function (userName, callback) {
 exports.requestImmediateMatch = function(playerName, callback/*(oldActiveMatch, newActiveMatch, waitingPlayers)*/) {
   // first reset current active match, if any
   exports.getActiveMatch(function(activeMatch){
+
     if(activeMatch) {
       if(activeMatch.players.indexOf(playerName) > -1) {
 
-        logger.info('ignoring immediate match request for '+ playerName);
+        logger.info('ignoring immediate match request for '+ playerName + ': he is already playing!');
+        callback();
+
+      } else if((new Date() - new Date(activeMatch.startDate)) < (300000)) {
+        // if active match is not older than 5 minutes the players are probably on their way ... maybe
+
+        logger.info('ignoring immediate match request for '+ playerName + ': current match is only ' +
+                Math.round((new Date() - new Date(activeMatch.startDate)) / 1000) + ' seconds old');
         callback();
 
       } else {
 
-        const newValue = {state:MATCH_STATE_WAITING, startDate:null};
-        mongo.update(matches, {_id:activeMatch._id}, newValue, function (err, result) {
-
-          activeMatch.state = newValue.state;
-          activeMatch.startDate = null;
-
+        exports.modifyMatch(activeMatch, {state:MATCH_STATE_WAITING, startDate:null}, function(modifiedMatch) {
           exports.requestMatch([playerName,playerName,playerName,playerName],
                   function(newMatch, waitingPlayers){
-                    callback(activeMatch, newMatch, waitingPlayers);
+                    logger.info('immediate match request produced ' + JSON.stringify({
+                      modifiedMatch : modifiedMatch,
+                      newMatch : newMatch,
+                      waitingPlayers : waitingPlayers
+                    }));
+                    callback(modifiedMatch, newMatch, waitingPlayers);
                   });
-
         });
+
       }
     } else {
 
