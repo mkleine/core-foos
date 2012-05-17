@@ -32,6 +32,7 @@ function initUserName(defaultName) {
   model.userName = userName;
 }
 
+// TODO remove after schema migration
 function getPlayers(match){
   return match.players || [match.player1, match.player2, match.player3, match.player4];
 }
