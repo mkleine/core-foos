@@ -1,1 +1,1 @@
-socket.io node-static mongodb --mongodb:native
+socket.io express mongodb --mongodb:native
